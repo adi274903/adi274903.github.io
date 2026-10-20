@@ -32,12 +32,16 @@ TRACKS = [("all", "All"), ("ai", "AI engineer"), ("fintech", "Fintech"), ("healt
 _BODY = C.THESIS.split(" - ", 1)[1].split(" Optimization")[0]
 SUMMARY = _BODY[0].upper() + _BODY[1:]          # GT summary without its role title and motto, verbatim
 MOTTO = C.THESIS[C.THESIS.index("Optimization"):]
-LEDE = {
-    "ai": SUMMARY,
-    "fintech": "Governed MCP agents, fraud-detection NLP and automated credit reporting, "
-               "backed by production RAG and LLM evaluation.",
-    "health": "Clinical language models, physician-rated RAG and healthcare price-transparency "
-              "agents, each measured against a baseline.",
+LEDE = {      # one plain-language summary per track; every figure is a GT3 number
+    "ai": "I build and evaluate AI systems for clinical and financial data. Recently: a 4.2B clinical model that "
+          "beat MedGemma-1.5-4B-it on all six benchmarks, an agentic retrieval prototype cut from ~8 seconds to 2, "
+          "and an evaluation pipeline with zero run-to-run skew.",
+    "fintech": "I build and evaluate AI for financial data: credit-bureau reporting cut from 3 days to 2 hours at "
+               "Tata Capital, a fraud-identification model at 0.86 F1 at Jocata, and governed agent access to "
+               "Oracle E-Business Suite at Value Global.",
+    "health": "I build and evaluate AI for clinical settings: a 4.2B clinical model that beat MedGemma-1.5-4B-it on "
+              "all six benchmarks, physician-rated RAG accuracy up 25% in EMMA, and a pricing agent that lifted "
+              "CPT/HCPCS code selection from 82% to 91%.",
 }
 STATS = {
     "ai": [("~8s → 2s", "retrieval time over ~1,000 chemical safety data sheets"),
