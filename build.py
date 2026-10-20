@@ -115,7 +115,7 @@ def fmt(text):
     return "".join(out)
 
 
-COLOGOS = [("Value Global", "seal", "valueglobal.webp"), ("Jocata", "img", "jocata.webp"), ("Carnegie", "seal", "cmu.webp"), ("Tata", "full", "tata.webp"), ("Stealth", "full", "stealth.webp")]
+COLOGOS = [("Value Global", "seal", "valueglobal.png"), ("Jocata", "img", "jocata.png"), ("Carnegie", "seal", "cmu.png"), ("Tata", "full", "tata.png"), ("Stealth", "full", "stealth.png")]
 
 
 def co_logo(org):
@@ -124,7 +124,7 @@ def co_logo(org):
         if key in org:
             if kind in ("img", "full", "seal"):
                 sz = 44 if kind == "full" else 40 if kind == "seal" else 32
-                return (f'<span class="co{" fb" if kind == "full" else ""}"><img src="logos/{val}" alt="" width="{sz}" height="{sz}" '
+                return (f'<span class="co{" fb" if kind == "full" else ""}{" ink" if val == "jocata.png" else ""}"><img src="logos/{val}" alt="" width="{sz}" height="{sz}" '
                         f'loading="lazy" decoding="async"></span>')
             return f'<span class="co">{ic(val, org)}</span>'
     ini = "ST" if org.startswith("Stealth") else "".join(w[0] for w in re.sub(r"[^A-Za-z ]", "", org).split()[:2]).upper()
@@ -376,7 +376,20 @@ def home():
         t, o, d, w = honor(h)
         return (f'<li class="hn"><div><b>{e(t)}</b>' + (f'<span class="org">{e(o)}</span>' if o else "") + "</div>"
                 + (f"<p>{fmt(d)}</p>" if d else "") + (f'<time class="wh">{e(w)}</time>' if w else "") + "</li>")
-    hon = "".join(_hon(h) for h in C.HONORS)
+    _SEASON = {"winter": 0.0, "spring": 0.25, "summer": 0.5, "fall": 0.75}
+    _MONTH = {m: i / 12 for i, m in enumerate("jan feb mar apr may jun jul aug sep oct nov dec".split())}
+
+    def _when(h):
+        """Sortable decimal year from the honour's own date text ('Nov 2025', 'Fall 2024', '2024')."""
+        w = honor(h)[3].lower()
+        y = re.search(r"(20\d\d)", w)
+        if not y:
+            return 0.0
+        word = re.match(r"[a-z]+", w)
+        frac = _SEASON.get(word.group(0), _MONTH.get(word.group(0)[:3], 0.4)) if word else 0.4
+        return int(y.group(1)) + frac
+
+    hon = "".join(_hon(h) for h in sorted(C.HONORS, key=_when, reverse=True))
     edu = "".join(f'<li><b>{e(d["degree"])}</b><span>{e(d["school"])} \u00b7 {e(d["meta"])}</span></li>'
                   for d in C.EDUCATION)
     return f"""<section class="hero"><div class="wrap">
@@ -449,6 +462,8 @@ def case(i):
 def build():
     DIST.mkdir(exist_ok=True)
     (DIST / "styles.css").write_text((HERE / "src/styles.css").read_text())
+    import shutil
+    shutil.rmtree(DIST / "logos", ignore_errors=True)
     (DIST / "logos").mkdir(exist_ok=True)
     for f in (HERE / "src/assets/logos").iterdir():
         (DIST / "logos" / f.name).write_bytes(f.read_bytes())
