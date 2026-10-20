@@ -115,7 +115,7 @@ def fmt(text):
     return "".join(out)
 
 
-COLOGOS = [("Jocata", "img", "jocata.webp"), ("Carnegie", "seal", "cmu.webp"), ("Tata", "full", "tata.webp"), ("Stealth", "full", "stealth.webp")]
+COLOGOS = [("Value Global", "seal", "valueglobal.webp"), ("Jocata", "img", "jocata.webp"), ("Carnegie", "seal", "cmu.webp"), ("Tata", "full", "tata.webp"), ("Stealth", "full", "stealth.webp")]
 
 
 def co_logo(org):
