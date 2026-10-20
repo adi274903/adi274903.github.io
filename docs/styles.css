@@ -388,3 +388,9 @@ details ul{margin-left:58px}
 .askp{min-height:0}
 .askp .thread{min-height:260px}
 .askp.asked .starts{display:none}
+/* large screens: scale the whole page up so it does not sit in a narrow column */
+@media(min-width:1600px){html{zoom:1.2}}
+@media(min-width:1900px){html{zoom:1.4}}
+@media(min-width:2300px){html{zoom:1.7}}
+@media(min-width:2900px){html{zoom:2.1}}
+@media(min-width:3600px){html{zoom:2.6}}
