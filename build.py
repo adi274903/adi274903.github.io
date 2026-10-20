@@ -554,7 +554,7 @@ HOW_STEPS = [   # (title, lines) for the example question "What did he do at EMM
 
 def how_svg(vertical=False):
     """Animated pipeline diagram (SMIL packet + CSS highlight loop). Static for prefers-reduced-motion."""
-    bw, bh, gap = (300, 84, 34) if vertical else (132, 132, 20)
+    bw, bh, gap = (300, 100, 28) if vertical else (132, 132, 20)
     n = len(HOW_STEPS)
     W, H = (330, 24 + n * (bh + gap) - gap + 24) if vertical else (24 + n * (bw + gap) - gap + 24, 190)
     out = []
@@ -562,7 +562,7 @@ def how_svg(vertical=False):
     for i, (title, lines) in enumerate(HOW_STEPS):
         x, y = (15, 24 + i * (bh + gap)) if vertical else (24 + i * (bw + gap), 28)
         pos.append((x, y))
-        g = [f'<g class="hs" style="animation-delay:{i * 1.2}s">',
+        g = [f'<g class="hs" opacity=".35"><animate attributeName="opacity" values=".35;1;1;.35;.35" keyTimes="0;0.04;0.14;0.19;1" dur="7.5s" begin="{1.5 * i - 0.3:.1f}s" repeatCount="indefinite"/>',
              f'<rect class="hb" x="{x}" y="{y}" width="{bw}" height="{bh}" rx="14"/>',
              f'<text class="ht" x="{x + 14}" y="{y + 22}">{i + 1:02d} \u00b7 {e(title.upper())}</text>']
         if not lines:
@@ -593,7 +593,7 @@ def how_svg(vertical=False):
         ty = pos[0][1] + bh + 16
         path = f"M{pos[0][0] + bw / 2} {ty} L{pos[-1][0] + bw / 2} {ty}"
         track = f'<path class="ha" d="{path}"/>'
-    packet = (f'<circle class="hp" r="6"><animateMotion dur="6s" repeatCount="indefinite" path="{path}" keyTimes="0;1" calcMode="linear"/></circle>')
+    packet = (f'<circle class="hp" r="6"><animateMotion dur="7.5s" repeatCount="indefinite" path="{path}" keyPoints="0;1;1" keyTimes="0;0.8;1" calcMode="linear"/></circle>')
     defs = '<defs><marker id="ah" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L8 4 L0 8 z" class="hah"/></marker></defs>'
     label = "How the Ask page works: question, read it, find the section, rank the lines, quote the best match"
     return f'<svg class="hws" viewBox="0 0 {W} {H}" role="img" aria-label="{label}">{defs}{"".join(arrows)}{track}{"".join(out)}{packet}</svg>'
@@ -602,7 +602,7 @@ def how_svg(vertical=False):
 def page_ask():
     data = ask_data()
     n_sec = len(data["sections"]); n_lines = sum(len(s["chunks"]) for s in data["sections"])
-    return f"""<section class="head"><div class="wrap">
+    return f"""<section class="head"><div class="wrap askn">
 <span class="k">Ask my record</span>
 <h1 class="askh">Ask about my work.</h1>
 <p class="lede" style="max-width:60ch">Ask about my projects, results, roles or papers, or which of my work fits a fintech, healthtech or AI engineering role.</p></div></section>

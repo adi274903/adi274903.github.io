@@ -55,17 +55,25 @@
   function ask(q) {
     q = (q || "").trim();
     if (!q || !eng || busy) return;
-    busy = true; input.value = "";
+    busy = true; input.value = ""; d.getElementById("askp").classList.add("asked");
     say("u", el("p", "", q));
     var r = eng.answer(q, state);
     (r.type === "multi" ? r.parts : [r]).forEach(function (x) { say("b", render(x)); if (x.sectionId) state.last = x.sectionId; });
     busy = false; scroll(); input.focus();
   }
   form.onsubmit = function (e) { e.preventDefault(); ask(input.value); };
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) {         // still diagram for visitors who ask for less motion
+    [].forEach.call(d.querySelectorAll(".hws animate,.hws animateMotion"), function (n) { n.remove(); });
+    [].forEach.call(d.querySelectorAll(".hws .hs"), function (g) { g.setAttribute("opacity", "1"); });
+    [].forEach.call(d.querySelectorAll(".hws .hp"), function (p) { p.remove(); });
+  }
   var hwb = d.getElementById("hwb"), hwp = d.getElementById("hwp"), box = d.getElementById("askp");
   hwb.onclick = function () {                       // "How it works": explanation + under-the-hood details on every answer
     var open = hwp.hidden;
     hwp.hidden = !open; hwb.setAttribute("aria-expanded", open); box.classList.toggle("xray", open);
+    if (open) {                                     // restart the diagram so the packet and the highlight begin together
+      [].forEach.call(d.querySelectorAll(".hws"), function (svg) { if (svg.setCurrentTime) svg.setCurrentTime(0); });   // packet and highlights share one clock
+    }
   };
   fetch("ask-data.json").then(function (r) { return r.json(); }).then(function (data) {
     eng = AskEngine.build(data);

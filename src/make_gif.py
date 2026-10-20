@@ -57,11 +57,11 @@ def frame(t):
     n = min(len(QUESTION), max(0, (t - 2) * 2))
     text(d, (46, 55), QUESTION[:n] + ("▌" if t < 30 and t % 6 < 3 else ""), font(SANS, 16), INK)
     # steps
-    active = -1 if t < 20 else min(4, (t - 20) // 10)
+    active = -1 if t < 12 else max(0, min(4, int((t - 18 + 6.5) // 13)))
     packet = None
     for i, (title, lines) in enumerate(STEPS):
         x = X0 + i * (BOX_W + GAP)
-        lit = i == active or (t >= 70 and i == 4)
+        lit = i == active
         rrect(d, (x, TOP, x + BOX_W, TOP + BOX_H), 14, fill=PANEL if lit else BG, outline=ACC if lit else LINE, width=2 if lit else 1)
         text(d, (x + 14, TOP + 14), title, font(MONOB, 11), ACC if lit else MUT)
         col = INK if lit else MUT
@@ -69,7 +69,7 @@ def frame(t):
             for k, ln in enumerate(lines):
                 text(d, (x + 14, TOP + 44 + k * 22), ln, font(SANS, 14), col)
         else:
-            grow = 1.0 if t >= 54 else max(0.0, min(1.0, (t - 44) / 8)) if i <= active else 0.0
+            grow = 1.0 if t >= 64 else max(0.0, min(1.0, (t - 50) / 10)) if i <= active else 0.0
             for k, sc in enumerate((0.92, 0.34, 0.18)):
                 yy = TOP + 50 + k * 28
                 rrect(d, (x + 14, yy, x + BOX_W - 14, yy + 12), 6, fill=BG, outline=LINE)
@@ -89,14 +89,14 @@ def frame(t):
     # answer card
     rrect(d, (28, 282, W - 28, 450), 14, fill=PANEL, outline=LINE)
     text(d, (46, 296), "EMMA AI CLINICAL EDUCATION PLATFORM", font(MONOB, 11), ACC)
-    if t >= 62:
-        rich(d, 46, 328, ANSWER, int((t - 62) * 9), W - 120)
-    if t >= 80:
+    if t >= 72:
+        rich(d, 46, 328, ANSWER, int((t - 72) * 9), W - 120)
+    if t >= 90:
         text(d, (46, 420), "SOURCE LINE, QUOTED FROM MY RECORD   ·   same question, same answer, every time", font(MONOB, 10), MUT)
     return img.resize((W, H), Image.LANCZOS)
 
 
-frames = [frame(t) for t in range(0, 96, 2)]
+frames = [frame(t) for t in range(0, 104, 2)]
 pal = [f.quantize(colors=24, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE) for f in frames]
 OUT.parent.mkdir(exist_ok=True)
 dur = [120] * (len(pal) - 1) + [3000]

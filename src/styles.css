@@ -375,8 +375,9 @@ details ul{margin-left:58px}
 .hws .hbt{fill:var(--panel);stroke:var(--line);stroke-width:1}
 .hws .hbar{fill:var(--mut);opacity:.55}
 .hws .hbar.win{fill:var(--acc);opacity:1}
-@media(prefers-reduced-motion:no-preference){.hws .hs{opacity:.35;animation:hlt 6s ease-in-out infinite}
- @keyframes hlt{0%{opacity:.35}4%{opacity:1}20%{opacity:1}26%{opacity:.35}100%{opacity:.35}}}
-@media(prefers-reduced-motion:reduce){.hws animateMotion{display:none}}
+
 @media(max-width:900px){.hwd .dw{display:none}.hwd .mw{display:block}}
 .hwd .mw{max-width:420px;margin:0 auto}
+.askp{min-height:0}
+.askp .thread{min-height:260px}
+.askp.asked .starts{display:none}
