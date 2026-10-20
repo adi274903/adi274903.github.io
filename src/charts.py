@@ -11,8 +11,10 @@ def _svg(h, label, body, cls="ch", w=W):
             f'{body}</svg>')
 
 
-def hbars(title, rows, maxv=None, note="", label=None, w=W):
-    """rows: [(label, value, shown, hot)] on one shared scale."""
+def hbars(title, rows, maxv=None, note="", label=None, w=W, order=True):
+    """rows: [(label, value, shown, hot)] on one shared scale, largest first unless order=False."""
+    if order:
+        rows = sorted(rows, key=lambda r: -r[1])
     maxv = maxv or max(r[1] for r in rows)
     rh, top = 34, 26
     x0, x1 = (140, w - 96) if w >= W else (150, w - 66)
@@ -34,7 +36,7 @@ def hbars(title, rows, maxv=None, note="", label=None, w=W):
 
 def delta(title, before, after, b_text, a_text, note="", maxv=None, w=W):
     return hbars(title, [("before", before, b_text, False), ("after", after, a_text, True)],
-                 maxv=maxv, note=note, label=f"{title}: {b_text} to {a_text}", w=w)
+                 maxv=maxv, note=note, label=f"{title}: {b_text} to {a_text}", w=w, order=False)
 
 
 def matrix(rows, cols, hits, title):

@@ -201,8 +201,8 @@ def _chart_for(n, w=CH.W):
             note="base = Qwen3.5-4B-Base", label="Med-Qwen benchmark scores", w=w)
     if n == "02":
         return CH.hbars("EMMA \u00b7 evidence base", [
-            ("20 contexts", 20, "20", False), ("physician surveys", 2, "2", True),
-            ("students surveyed", 48, "48", False)],
+            ("students surveyed", 48, "48", True), ("20 contexts", 20, "20", False),
+            ("physician surveys", 2, "2", False)],
             maxv=50, note="+25% comes from the two physician surveys",
             label="EMMA evidence base", w=w)
     if n == "03":
