@@ -68,7 +68,7 @@ def _metric_row(value):
 
 # ------------------------------------------------------------- logos, bold numbers, links
 ICON_RULES = [("qwen", r"qwen", "Qwen"), ("googlecloud", r"\bGCP\b|Google Cloud", "Google Cloud"),
-              ("googlegemini", r"\bGemini\b", "Gemini"), ("huggingface", r"hugging ?face", "Hugging Face"),
+              ("googlegemini", r"Gemini|Gemma", "Gemini / Gemma"), ("huggingface", r"hugging ?face", "Hugging Face"),
               ("pytorch", r"PyTorch", "PyTorch"), ("postgresql", r"pgvector|PostgreSQL", "PostgreSQL"),
               ("neo4j", r"Neo4j", "Neo4j"), ("qdrant", r"Qdrant", "Qdrant"),
               ("databricks", r"Databricks", "Databricks"), ("apachespark", r"PySpark", "PySpark"),
