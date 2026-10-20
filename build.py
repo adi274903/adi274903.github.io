@@ -115,15 +115,15 @@ def fmt(text):
     return "".join(out)
 
 
-COLOGOS = [("Jocata", "img", "jocata.webp"), ("Carnegie", "img", "cmu.webp"), ("Tata", "full", "tata.webp"), ("Stealth", "full", "stealth.webp")]
+COLOGOS = [("Jocata", "img", "jocata.webp"), ("Carnegie", "seal", "cmu.webp"), ("Tata", "full", "tata.webp"), ("Stealth", "full", "stealth.webp")]
 
 
 def co_logo(org):
     """Left-hand tile for an employer: its logo if we have one, otherwise initials (decorative)."""
     for key, kind, val in COLOGOS:
         if key in org:
-            if kind in ("img", "full"):
-                sz = 44 if kind == "full" else 32
+            if kind in ("img", "full", "seal"):
+                sz = 44 if kind == "full" else 40 if kind == "seal" else 32
                 return (f'<span class="co{" fb" if kind == "full" else ""}"><img src="logos/{val}" alt="" width="{sz}" height="{sz}" '
                         f'loading="lazy" decoding="async"></span>')
             return f'<span class="co">{ic(val, org)}</span>'
