@@ -47,7 +47,7 @@
 
   var ROLEFIT = /\b(fit|fits|fitting|suit|suits|suitable|relevant|best for|good for|right for|which (project|work|experience)|what (project|work|experience))\b/i;
   var LISTQ = /\b(which|any|list|show|every|all)\b.{0,40}\b(projects?|work|experience|roles?|research)\b|\bwhat (projects?|work|experience)\b|\b(fit|fits|relevant|suit|suits|involve|involves|involving|related to|focused on|touch|touches)\b/i;
-  var HELP = /\b(how (can|could|would) (he|aditya) (help|fit|contribute|add)|what can (he|aditya) do for|why (hire|should (i|we))|help me|can (he|aditya) help|value (he|aditya) (brings|adds))\b/i;
+  var HELP = /\b(how (can|could|would) (he|aditya) (help|fit|contribute|add)|what can (he|aditya) do for|why (hire|should (i|we))|help me|can (he|aditya) help|value (he|aditya) (brings|adds)|recruit|suited for|suitable for|best (at|for|role)|good at|strengths?|what (roles?|jobs?|positions?) (is|would|should|could)|where (would|should|could) (you|i|we) (place|put|use))\b/i;
   var EXPER = /\b(experience|experiences|background|career|work history|track record|what (has|have) (he|aditya) done|where has (he|aditya) worked|resume|cv)\b|\b(roles?|positions?|jobs?)\b.{0,25}\b(held|had|has|have)\b/i;
   var YEARS = /\b(how (many|long)\b.{0,25}\b(years?|months?)|years? of (experience|work)|how (much|long)\b.{0,25}\bexperience|how long (has|have|did) (he|aditya) (worked|been)|how experienced|seniority|statistics|stats|by the numbers|in numbers)\b/i;
   var SUPER = /\b(strongest|best|proudest|most impressive|top|favou?rite|flagship|biggest)\b.{0,25}\b(project|work|result|achievement|win)\b/i;
@@ -183,8 +183,16 @@
       if (HELP.test(q) && data.tracks) {
         var T = data.tracks;
         return { type: "tracks", section: "How Aditya can help", how: "role tags", score: 1,
-          lead: "Here is where Aditya can help, by kind of role:",
-          lines: ["fintech", "health", "ai"].map(function (k) { return T[k].label + ": " + T[k].items.slice(0, 2).map(function (x) { return x.title + " (" + x.metric + ")"; }).join("; "); }),
+          lead: /recruit|hire|suited|suitable|best|good at|strength|place|put|use|roles?|jobs?|positions?/i.test(q) && !/how (can|could|would)|help|value/i.test(q) ? "Based on his record, here is where I would place Aditya:" : "Here is where Aditya can help, by kind of role:",
+          lines: (function () {            // fintech and healthtech first (the narrower fits), each showing examples the others do not; AI engineer takes the rest
+            var used = {}, out = {};
+            ["fintech", "health", "ai"].forEach(function (k) {
+              var fresh = T[k].items.filter(function (x) { return !used[x.title]; }); if (k === "ai") fresh = fresh.reverse(); var pick = (fresh.length >= 2 ? fresh : T[k].items).slice(0, 2);
+              pick.forEach(function (x) { used[x.title] = 1; });
+              out[k] = T[k].label + " (" + T[k].items.length + " tagged): " + pick.map(function (x) { return x.title + " (" + x.metric + ")"; }).join("; ");
+            });
+            return [out.ai, out.health, out.fintech];
+          })(),
           links: [{ label: "Book a chat", href: "contact.html" }, { label: "See all work", href: "index.html#work" }],
           suggestions: ["Which project fits a fintech role?", "Tell me about his healthcare experience", "What is his experience?"] };
       }

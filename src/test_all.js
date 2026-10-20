@@ -7,7 +7,8 @@ const facetq = [["Which projects involve retrieval?", "tracks", "Value Global"],
 const phrasing = [["tell me about his healthcare experience?", "tracks", "EMMA"], ["What is his fintech background?", "tracks", "Tata"], ["clinical work he has done", "tracks", "Med-Qwen"], ["tell me about his experience with retrieval", "tracks", "EMMA"], ["anything about banking", "tracks", "Jocata"]];
 const intents = [["So how can he help me? whats hsi experience?", "multi", "Fintech|Value Global"], ["how can he help me", "tracks", "Fintech"], ["whats his experience?", "tracks", "Value Global"], ["what is hsi experiance", "tracks", "Tata Capital"], ["tell me about tata capitl", "get_tata_capital", "credit"], ["why should we hire him?", "tracks", "Healthtech"]];
 const stats = [["How many years of experience does he have?", "tracks", "years|months"], ["how long has he worked", "tracks", "overlapping roles counted once"], ["give me some summary statistics", "tracks", "By domain|Tagged by domain"], ["Tell me about some Fintech experience", "tracks", "Tata|Jocata"]];
-const sets = { stats4: stats, intents6: intents, phrasing5: phrasing, facets5: facetq, roles5: roles, dev29: grab("test_engine.js"), second22: grab("test_heldout.js") };
+const recruit = [["What would you recruit him for?", "tracks", "AI engineer"], ["What roles is he suited for?", "tracks", "Healthtech"], ["What is he best at?", "tracks", "Fintech"], ["Where would you place him on a team?", "tracks", "AI engineer"]];
+const sets = { recruit4: recruit, stats4: stats, intents6: intents, phrasing5: phrasing, facets5: facetq, roles5: roles, dev29: grab("test_engine.js"), second22: grab("test_heldout.js") };
 const DATA = JSON.parse(fs.readFileSync(path.join(__dirname, "..", process.argv[2] || "dist", "ask-data.json"), "utf8")); const eng = E.build(DATA);
 let ok = 0, n = 0; const miss = [], per = {};
 for (const [name, T] of Object.entries(sets)) {
