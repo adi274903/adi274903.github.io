@@ -256,3 +256,23 @@ details ul{margin-left:58px}
 .hn .org{display:block;font:600 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--acc);margin-top:3px}
 .hn p{grid-column:1/-1;color:var(--mut);font-size:14.5px}
 .hn .wh{grid-row:1;grid-column:2;font:600 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--mut);white-space:nowrap;align-self:start;border:1px solid var(--line);border-radius:99px;padding:4px 10px}
+/* Med-Qwen comparison */
+.vs{display:grid;gap:10px;width:100%}
+.vr{display:grid;grid-template-columns:minmax(0,1.5fr) auto auto;gap:12px;align-items:center}
+.vn{font-size:14px;color:var(--mut);line-height:1.3}
+.cells{display:inline-flex;gap:4px}
+.cells i{width:16px;height:16px;border-radius:4px;background:var(--bg);border:1px solid var(--line)}
+.cells i.w{background:var(--acc);border-color:var(--acc)}
+.vr b{font:650 18px var(--sans);font-variant-numeric:tabular-nums;min-width:2.6em;text-align:right}
+.tblw{margin-top:clamp(28px,4vw,48px);padding:0}
+.cmp{width:100%;border-collapse:collapse;min-width:560px;font-size:15px}
+.cmp caption{text-align:left;padding:16px 20px;color:var(--mut);font-size:13px;caption-side:bottom}
+.cmp th,.cmp td{padding:13px 16px;text-align:right;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+.cmp th:first-child,.cmp tbody th{text-align:left}
+.cmp thead th{font:600 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--mut);vertical-align:bottom}
+.cmp tbody th{font-weight:600}
+.cmp .us{background:color-mix(in srgb,var(--acc) 8%,transparent)}
+.cmp thead .us{color:var(--acc)}
+.cmp td.best{font-weight:700;color:var(--bg);background:var(--acc)}
+.cmp td.us.best{box-shadow:inset 0 0 0 2px var(--hot)}
+.cmp tbody tr:last-child th,.cmp tbody tr:last-child td{border-bottom:0}

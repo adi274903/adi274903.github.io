@@ -143,9 +143,53 @@ def honor(h):
     return title, org, detail, when
 
 
+# ------------------------------------------------------------ Med-Qwen comparison (GT3, model card)
+MQ_HEAD, MQ_ROWS = gt.medqwen_table()
+_NAMES = {"Qwen3.5-4B-Base": "its base", "MedGemma-1.5-4B-it": "MedGemma-1.5-4B-it", "Gemma-4-E4B-it": "Gemma-4-E4B-it"}
+
+
+def mq_wins():
+    """Out of the six benchmarks, how many does Med-Qwen beat each other model on? Derived from the table."""
+    out = []
+    for col, name in ((3, "MedGemma-1.5-4B-it"), (4, "Gemma-4-E4B-it"), (1, "its base, Qwen3.5-4B-Base")):
+        won = [float(r[2]) > float(r[col]) for r in MQ_ROWS]
+        out.append((name, won))
+    return out
+
+
+def mq_score():
+    rows = "".join(
+        f'<div class="vr"><span class="vn">{e(n)}</span><span class="cells" aria-hidden="true">'
+        + "".join(f'<i class="{"w" if w else "l"}"></i>' for w in won)
+        + f'</span><b>{sum(won)}/{len(won)}</b></div>' for n, won in mq_wins())
+    return (f'<div class="vs" role="group" aria-label="Med-Qwen wins out of six benchmarks, per comparison model">'
+            f'<span class="k">Wins out of {len(MQ_ROWS)} benchmarks</span>{rows}</div>')
+
+
+def mq_table():
+    head = "".join(f'<th{" class=us" if i == 2 else ""}>{e("Med-Qwen (ours)" if i == 2 else h if i else "Benchmark")}</th>'
+                   for i, h in enumerate(MQ_HEAD))
+    body = ""
+    for r in MQ_ROWS:
+        best = max(float(x) for x in r[1:])
+        tds = "".join(
+            f'<td class="{"us " if i == 2 else ""}{"best" if float(x) == best else ""}">{e(x)}</td>'
+            for i, x in enumerate(r) if i)
+        body += f'<tr><th scope="row">{e(r[0])}</th>{tds}</tr>'
+    return (f'<div class="scroll tblw"><table class="cmp"><caption>PubMedQA, MedQA (USMLE 4-option), GPQA Diamond, MedMCQA, '
+            f'MMLU Med aggregate and AfriMed-QA. Highest score in each row is highlighted.</caption>'
+            f'<thead><tr>{head}</tr></thead><tbody>{body}</tbody></table></div>'
+            f'<p class="cap">Zero-shot, greedy inference with normalized choice log-probabilities. Med-Qwen beats '
+            f'MedGemma-1.5-4B-it on every benchmark and Gemma-4-E4B-it on five of six; it trails its own base model on '
+            f'MedQA, MMLU Med and AfriMed-QA. Source: '
+            f'<a class="ln" href="https://huggingface.co/adi274903/Med-Qwen-3.5-4B-Instruct" rel="noopener">the published model card</a>.</p>')
+
+
 # ---------------------------------------------------------------------- entries
 def _chart_for(n, w=CH.W):
     if n == "01":
+        return mq_score()
+    if n == "__old01":
         return CH.hbars("Med-Qwen-3.5-4B-Instruct · zero-shot greedy", [
             ("PubMedQA · base", 45.60, "45.60", False),
             ("PubMedQA · Med-Qwen", 66.20, "66.20", True),
@@ -216,7 +260,8 @@ for n, ex, key, kick in (("07", C.TATA, "3 days → 2 hours", "Credit reporting"
         tracks="fintech ai" if n == "08" else "fintech", bullets=ex["bullets"],
         source=f'{ex["org"]} · {ex["meta"]}', url=""))
 for en in ENTRIES:
-    en["chart"] = f'<div class="dw">{_chart_for(en["n"])}</div><div class="mw">{_chart_for(en["n"], 360)}</div>'
+    en["chart"] = (_chart_for(en["n"]) if en["n"] == "01" else
+                   f'<div class="dw">{_chart_for(en["n"])}</div><div class="mw">{_chart_for(en["n"], 360)}</div>')
     en["slug"] = f'case-{en["n"]}.html'
 
 # ------------------------------------------------------------------ evidence matrix
@@ -394,6 +439,7 @@ def case(i):
 <div><div class="scroll" style="padding:18px">{en["chart"]}</div>
 <span class="k" style="display:block;margin-top:22px">Stack</span><ul class="chips" style="margin-top:10px">{tags}</ul>
 <span class="k" style="display:block;margin-top:22px">Relevant to</span><ul class="chips" style="margin-top:10px">{trk}</ul></div></div>
+{mq_table() if en["n"] == "01" else ""}
 <div class="pn">{pn}</div></div></section>"""
     return shell(f'{en["title"]} — {NAME}', en["metric"] + " — " + en["metric_note"], body)
 
