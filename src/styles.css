@@ -218,3 +218,21 @@ footer p{font-size:13px;color:var(--mut)}
 .motto{margin-top:16px;padding-left:16px;border-left:2px solid var(--hot);font-size:clamp(16px,1.6vw,19px);color:var(--mut);max-width:58ch;font-style:italic}
 .hs .stats,.hero>.wrap>.stats{margin-top:clamp(28px,4vw,48px)}
 @media(max-width:899px){.hp{order:-1;max-width:150px;justify-self:start}}
+/* logos, bold numbers, links */
+.ic{width:15px;height:15px;fill:currentColor;flex:none}
+.lg-i{display:inline-flex}
+.chips li{display:inline-flex;align-items:center;gap:6px}
+.lg{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:12px;margin-top:6px;color:var(--mut)}
+.lg .ic{width:17px;height:17px}
+.tools{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:6px}
+.tools li{display:inline-flex;align-items:center;gap:9px;padding:8px 13px;border:1px solid var(--line);border-radius:12px;background:var(--panel);font-size:14px}
+.tools .ic{width:18px;height:18px;color:var(--acc)}
+strong.n{font-weight:700;color:var(--ink)}
+.cm strong.n{color:inherit}
+a.ln,.cap a{color:var(--acc);text-decoration:underline;text-decoration-thickness:1.5px;text-underline-offset:3px;overflow-wrap:anywhere}
+a.ln:hover{text-decoration-color:var(--hot)}
+.rows a b{text-decoration:underline;text-decoration-color:var(--line);text-decoration-thickness:1.5px;text-underline-offset:4px}
+.rows a:hover b{text-decoration-color:var(--acc);color:var(--acc)}
+.rows a span{color:var(--acc)}
+footer .l a{text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:4px}
+footer p+p{margin-top:6px;font-size:12px}

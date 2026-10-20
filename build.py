@@ -63,6 +63,56 @@ def _metric_row(value):
     return next(r for r in C.METRICS if r[1] == value)
 
 
+
+# ------------------------------------------------------------- logos, bold numbers, links
+ICON_RULES = [("qwen", r"qwen", "Qwen"), ("googlecloud", r"\bGCP\b|Google Cloud", "Google Cloud"),
+              ("googlegemini", r"\bGemini\b", "Gemini"), ("huggingface", r"hugging ?face", "Hugging Face"),
+              ("pytorch", r"PyTorch", "PyTorch"), ("postgresql", r"pgvector|PostgreSQL", "PostgreSQL"),
+              ("neo4j", r"Neo4j", "Neo4j"), ("qdrant", r"Qdrant", "Qdrant"),
+              ("databricks", r"Databricks", "Databricks"), ("apachespark", r"PySpark", "PySpark"),
+              ("oracle", r"Oracle", "Oracle"), ("python", r"\bPython\b", "Python"),
+              ("spacy", r"SpaCy", "spaCy"), ("fastapi", r"FastAPI", "FastAPI"),
+              ("streamlit", r"Streamlit", "Streamlit"), ("anthropic", r"\bClaude\b", "Claude"),
+              ("mistralai", r"Mistral", "Mistral"), ("deepseek", r"DeepSeek", "DeepSeek"),
+              ("amazonwebservices", r"\bAWS\b|Bedrock", "AWS Bedrock"), ("vllm", r"vLLM", "vLLM"),
+              ("tensorflow", r"TensorFlow", "TensorFlow"), ("scikitlearn", r"scikit-learn", "scikit-learn")]
+
+
+def icons_in(text):
+    """Ordered, unique (slug, name) for every known technology mentioned in text."""
+    seen, out = set(), []
+    for slug, rx, name in ICON_RULES:
+        if slug not in seen and re.search(rx, text, re.I if slug in ("qwen", "huggingface") else 0):
+            seen.add(slug); out.append((slug, name))
+    return out
+
+
+def ic(slug, name):
+    return (f'<span class="lg-i" title="{e(name)}"><svg class="ic" aria-hidden="true">'
+            f'<use href="icons.svg#i-{slug}"/></svg></span>')
+
+
+_TOK = re.compile(r"(arXiv:\d{4}\.\d{5})|(https?://[^\s)\]>,;]+)|((?<![\w.\-])~?\d(?:[\d,]*\d)?(?:\.\d+)?(?:-\d+(?:\.\d+)?)?(?:%|[BMK](?![A-Za-z]))?)")
+
+
+def fmt(text):
+    """Escape, bold every metric, and link arXiv ids and URLs. Returns trusted HTML."""
+    out, pos = [], 0
+    for m in _TOK.finditer(text):
+        out.append(e(text[pos:m.start()])); pos = m.end()
+        tok = m.group(0)
+        if m.group(1):
+            out.append(f'<a class="ln" href="https://arxiv.org/abs/{tok[6:]}" rel="noopener">{e(tok)}</a>')
+        elif m.group(2):
+            out.append(f'<a class="ln" href="{e(tok)}" rel="noopener">{e(tok)}</a>')
+        elif re.fullmatch(r"(19|20)\d\d", tok.lstrip("~")):
+            out.append(e(tok))
+        else:
+            out.append(f'<strong class="n">{e(tok)}</strong>')
+    out.append(e(text[pos:]))
+    return "".join(out)
+
+
 # ---------------------------------------------------------------------- entries
 def _chart_for(n, w=CH.W):
     if n == "01":
@@ -199,12 +249,13 @@ def shell(title, desc, body, depth_attr="", page="index"):
 <p style="margin:14px 0 4px"><a class="mail" href="{MAIL}">{e(C.EMAIL)}</a></p>
 <div class="l"><a href="{C.LINKEDIN}" rel="noopener">LinkedIn ↗</a><a href="{C.GITHUB}" rel="noopener">GitHub ↗</a><a href="{C.ARXIV}" rel="noopener">arXiv ↗</a></div>
 <p>{e(NAME)} · {e(ROLE)} · {e(C.CONTACT_LINE)}</p>
+<p>Logos are trademarks of their owners; icons from Simple Icons (CC0).</p>
 </div></footer>
 {CHAT_BTN}<script src="app.js" defer></script></body></html>"""
 
 
 def card(en):
-    tags = "".join(f"<li>{e(t)}</li>" for t in en["tags"][:4])
+    tags = "".join(f"<li>{''.join(ic(s, n) for s, n, in icons_in(t)[:1])}{e(t)}</li>" for t in en["tags"][:4])
     return (f'<a class="card cs" href="{en["slug"]}" data-tr="{en["tracks"]}">'
             f'<div class="m"><span class="mono">{e(en["n"])} · {e(en["kicker"])}</span>'
             f'<span class="mono">{e(en["year"])}</span></div>'
@@ -214,7 +265,7 @@ def card(en):
 
 
 def home():
-    ledes = "".join(f'<p class="lede" data-lede="{k}"{"" if k == "ai" else " hidden"}>{e(v)}</p>'
+    ledes = "".join(f'<p class="lede" data-lede="{k}"{"" if k == "ai" else " hidden"}>{fmt(v)}</p>'
                     for k, v in LEDE.items())
     stats = "".join(
         f'<div class="stats" data-stats="{k}"{"" if k == "ai" else " hidden"}>'
@@ -232,10 +283,14 @@ def home():
             ("Benchmarks", "A 4.2B clinical model against its base", ENTRIES[0]["chart"]),
             ("Evaluation", "Why the retrieval layer was the limit", ENTRIES[2]["chart"]),
             ("Scale", "Records from 15,944 papers, zero skew", ENTRIES[3]["chart"])])
+    pool = " ".join([" ".join(en["bullets"]) + " " + " ".join(en["tags"]) for en in ENTRIES]
+                    + [" ".join(x["bullets"]) for x in C.EXPERIENCE] + [" ".join(p["bullets"]) for p in C.PROJECTS])
+    tools = "".join(f"<li>{ic(s, n)}<span>{e(n)}</span></li>" for s, n in icons_in(pool))
     xp = "".join(
         f'<details{" open" if i == 0 else ""}><summary><b>{e(x["org"])}</b><span>{e(x["period"])}</span>'
-        f'<small>{e(x["role"])} · {e(x["meta"])}</small></summary>'
-        f'<ul>{"".join(f"<li>{e(b)}</li>" for b in x["bullets"])}</ul></details>'
+        f'<small>{e(x["role"])}{" · " + e(x["meta"]) if x["meta"] else ""}</small>'
+        f'<span class="lg">{"".join(ic(s, n) for s, n in icons_in(" ".join(x["bullets"])))}</span></summary>'
+        f'<ul>{"".join(f"<li>{fmt(b)}</li>" for b in x["bullets"])}</ul></details>'
         for i, x in enumerate(C.EXPERIENCE))
     pubs = "".join(f'<li><a href="{p["url"]}" rel="noopener"><b>{e(p["title"])}</b>'
                    f'<span>{e(p["venue"])} · {e(p["year"])} ↗</span></a></li>' for p in C.PUBLICATIONS)
@@ -266,7 +321,8 @@ def home():
 <section id="stack"><div class="wrap"><div class="sh"><span class="k">Where the skills show up</span>
 <h2>Skills, counted rather than claimed.</h2>
 <p>Each cell is the number of resume bullets in that project or role that mention the area. Computed from the text, not self-rated.</p></div>
-<div class="scroll">{matrix_svg()}</div>
+<ul class="tools" aria-label="Tools used across the work">{tools}</ul>
+<div class="scroll" style="margin-top:22px">{matrix_svg()}</div>
 <p class="cap">A darker cell means more bullets. Retrieval and evaluation run through most of the work; fine-tuning is concentrated in one project and the 4.2B model behind it.</p>
 <div class="sh" style="margin-top:clamp(40px,5vw,70px)"><span class="k">Timeline</span><h2>August 2023 to now.</h2></div>
 <div class="scroll">{CH.timeline(TIMELINE)}</div></div></section>
@@ -286,8 +342,8 @@ def case(i):
     next_ = ENTRIES[i + 1] if i + 1 < len(ENTRIES) else None
     tmap = dict(TRACKS)
     trk = "".join(f"<li>{e(tmap[t])}</li>" for t in en["tracks"].split())
-    tags = "".join(f"<li>{e(t)}</li>" for t in en["tags"])
-    bl = "".join(f"<li>{e(b)}</li>" for b in en["bullets"])
+    tags = "".join(f"<li>{''.join(ic(s, n) for s, n in icons_in(t)[:1])}{e(t)}</li>" for t in en["tags"])
+    bl = "".join(f"<li>{fmt(b)}</li>" for b in en["bullets"])
     link = (f'<a class="btn" href="{_linkify(en["url"])}" rel="noopener">View project ↗</a>'
             if en["url"] else "")
     pn = ((f'<a class="btn" href="{prev_["slug"]}">← {e(prev_["title"])}</a>') if prev_ else
@@ -299,7 +355,7 @@ def case(i):
 <h1>{e(en["title"])}</h1>
 <div class="bigm"><b>{e(en["metric"])}</b><span>{e(en["metric_note"])}</span></div>
 <div class="cols"><div><span class="k">What I built</span><ul class="b" style="margin-top:14px">{bl}</ul>
-<p class="cap">{e(en["line"])}</p><div class="cta">{link}</div></div>
+<p class="cap">{fmt(en["line"])}</p><div class="cta">{link}</div></div>
 <div><div class="scroll" style="padding:18px">{en["chart"]}</div>
 <span class="k" style="display:block;margin-top:22px">Stack</span><ul class="chips" style="margin-top:10px">{tags}</ul>
 <span class="k" style="display:block;margin-top:22px">Relevant to</span><ul class="chips" style="margin-top:10px">{trk}</ul></div></div>
@@ -310,6 +366,7 @@ def case(i):
 def build():
     DIST.mkdir(exist_ok=True)
     (DIST / "styles.css").write_text((HERE / "src/styles.css").read_text())
+    (DIST / "icons.svg").write_text((HERE / "src/assets/icons.svg").read_text())
     (DIST / "me.webp").write_bytes((HERE / "src/assets/me.webp").read_bytes())
     (DIST / "app.js").write_text((HERE / "src/app.js").read_text())
     if not STATIC:

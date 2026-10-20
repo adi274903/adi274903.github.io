@@ -40,7 +40,7 @@ def delta(title, before, after, b_text, a_text, note="", maxv=None, w=W):
 def matrix(rows, cols, hits, title):
     """Evidence heat-grid. rows: concept labels; cols: short entry labels;
     hits[r][c] = number of bullets in that entry mentioning the concept."""
-    cw, rh, left, top = 44, 34, 178, 64
+    cw, rh, left, top = 44, 34, 196, 64
     totw = 60
     w = left + cw * len(cols) + totw
     h = top + rh * len(rows) + 8
