@@ -200,11 +200,11 @@ def _chart_for(n, w=CH.W):
             ("MedMCQA", 33.20, "33.20", False)], maxv=100,
             note="base = Qwen3.5-4B-Base", label="Med-Qwen benchmark scores", w=w)
     if n == "02":
-        return CH.hbars("EMMA · what the +25% rests on", [
-            ("+25% accuracy", 25, "+25%", True), ("contexts", 20, "20", False),
-            ("physician surveys", 2, "2", False)],
-            maxv=50, note="different units, one shared axis for scale only",
-            label="EMMA scale facts", w=w)
+        return CH.hbars("EMMA \u00b7 evidence base", [
+            ("20 contexts", 20, "20", False), ("physician surveys", 2, "2", True),
+            ("students surveyed", 48, "48", False)],
+            maxv=50, note="+25% comes from the two physician surveys",
+            label="EMMA evidence base", w=w)
     if n == "03":
         return CH.hbars("RACE · 15 Deep Research Bench queries", [
             ("Mistral-7B + BART", 0.0668, "0.0668", False),
@@ -239,7 +239,7 @@ for c in S.CARDS:
                                   "05": "Pricing", "06": "Value Global"}[c["n"]]))
 tr = {"01": "ai health", "02": "ai health", "03": "ai", "04": "ai health",
       "05": "ai health fintech", "06": "ai fintech"}
-bul = {"01": C.PROJECTS[0]["bullets"], "02": C.PROJECTS[1]["bullets"], "03": C.PROJECTS[2]["bullets"],
+bul = {"01": C.PROJECTS[0]["bullets"], "02": [C.EMMA_PRINT], "03": C.PROJECTS[2]["bullets"],
        "04": C.EXPERIENCE[1]["bullets"][:2], "05": C.EXPERIENCE[1]["bullets"][3:4],
        "06": C.EXPERIENCE[0]["bullets"]}
 src = {"01": (C.PROJECTS[0]["meta"], C.PROJECTS[0]["url"]), "02": (C.PROJECTS[1]["meta"], ""),
@@ -250,6 +250,9 @@ src = {"01": (C.PROJECTS[0]["meta"], C.PROJECTS[0]["url"]), "02": (C.PROJECTS[1]
 for en in ENTRIES:
     n = en["n"]
     en.update(tracks=tr[n], bullets=bul[n], source=src[n][0], url=src[n][1])
+    if n == "02":   # the physician surveys measured the answers (source of +25%); the student survey is app feedback
+        en["line"] = ("Rebuilt retrieval over a 20-context corpus on GCP with Gemini and pgvector. Two physician "
+                      "surveys measured the answers, and 48 students surveyed the app.")
 for n, ex, key, kick in (("07", C.TATA, "3 days → 2 hours", "Credit reporting"),
                          ("08", C.JOCATA, "0.86", "Fraud NLP")):
     row = _metric_row(key.replace("→", "→")) if key in [r[1] for r in C.METRICS] else None
