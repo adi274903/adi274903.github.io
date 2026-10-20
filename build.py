@@ -373,7 +373,7 @@ def home():
                    f'<span>{e(p["venue"])}{"" if p["year"] in p["venue"] else " \u00b7 " + e(p["year"])} \u2197</span></a></li>'
                    for p in C.PUBLICATIONS)
     HONOR_LINKS = {"Kaggle": "https://www.kaggle.com/competitions/11785-hw-2-p-2-face-verification-spring-2025/leaderboard",
-                   "AMIA": "https://workshopamia2025.github.io/AMIA-KDDM-2025"}
+                   "AMIA": "https://workshopamia2025.github.io/AMIA-KDDM-2025/posters/KDDM_Poster%5BCMU%5D.pdf"}
 
     def _hon(h):
         t, o, d, w = honor(h)
