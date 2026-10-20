@@ -115,6 +115,34 @@ def fmt(text):
     return "".join(out)
 
 
+COLOGOS = [("Jocata", "img", "jocata.webp"), ("Carnegie", "img", "cmu.webp"), ("Tata", "icon", "tata")]
+
+
+def co_logo(org):
+    """Left-hand tile for an employer: its logo if we have one, otherwise initials (decorative)."""
+    for key, kind, val in COLOGOS:
+        if key in org:
+            if kind == "img":
+                return f'<span class="co"><img src="logos/{val}" alt="" width="32" height="32" loading="lazy" decoding="async"></span>'
+            return f'<span class="co">{ic(val, org)}</span>'
+    ini = "ST" if org.startswith("Stealth") else "".join(w[0] for w in re.sub(r"[^A-Za-z ]", "", org).split()[:2]).upper()
+    return f'<span class="co mn" aria-hidden="true">{e(ini)}</span>'
+
+
+def honor(h):
+    """'Title, Org - detail (when)' -> structured row, same words, split for scanning."""
+    m = re.search(r"\(([^)]*)\)\s*$", h)
+    when, h = (m.group(1), h[:m.start()].strip()) if m else ("", h)
+    head, _, detail = h.partition(" - ")
+    title, _, org = head.partition(", ")
+    if not detail and when and "," in when:      # '(Kaggle competition, Spring 2025)' -> note + date
+        note, _, when = when.rpartition(", ")
+        detail = (org + " " if False else "") + note
+    if detail and not when and re.match(r"^[A-Z][a-z]{2} \d{4}", detail):    # 'Nov 2025, Atlanta' is a date line
+        when, detail = detail, ""
+    return title, org, detail, when
+
+
 # ---------------------------------------------------------------------- entries
 def _chart_for(n, w=CH.W):
     if n == "01":
@@ -289,15 +317,20 @@ def home():
                     + [" ".join(x["bullets"]) for x in C.EXPERIENCE] + [" ".join(p["bullets"]) for p in C.PROJECTS])
     tools = "".join(f"<li>{ic(s, n)}<span>{e(n)}</span></li>" for s, n in icons_in(pool))
     xp = "".join(
-        f'<details{" open" if i == 0 else ""}><summary><b>{e(x["org"])}</b><span>{e(x["period"])}</span>'
+        f'<details{" open" if i == 0 else ""}><summary>{co_logo(x["org"])}<b>{e(x["org"])}</b><span>{e(x["period"])}</span>'
         f'<small>{e(x["role"])}{" · " + e(x["meta"]) if x["meta"] else ""}</small>'
         f'<span class="lg">{"".join(ic(s, n) for s, n in icons_in(" ".join(x["bullets"])))}</span></summary>'
         f'<ul>{"".join(f"<li>{fmt(b)}</li>" for b in x["bullets"])}</ul></details>'
         for i, x in enumerate(C.EXPERIENCE))
     pubs = "".join(f'<li><a href="{p["url"]}" rel="noopener"><b>{e(p["title"])}</b>'
-                   f'<span>{e(p["venue"])} · {e(p["year"])} ↗</span></a></li>' for p in C.PUBLICATIONS)
-    hon = "".join(f"<li><b>{e(h)}</b></li>" for h in C.HONORS)
-    edu = "".join(f'<li><b>{e(d["degree"])}</b><span>{e(d["school"])} · {e(d["meta"])}</span></li>'
+                   f'<span>{e(p["venue"])}{"" if p["year"] in p["venue"] else " \u00b7 " + e(p["year"])} \u2197</span></a></li>'
+                   for p in C.PUBLICATIONS)
+    def _hon(h):
+        t, o, d, w = honor(h)
+        return (f'<li class="hn"><div><b>{e(t)}</b>' + (f'<span class="org">{e(o)}</span>' if o else "") + "</div>"
+                + (f"<p>{fmt(d)}</p>" if d else "") + (f'<time class="wh">{e(w)}</time>' if w else "") + "</li>")
+    hon = "".join(_hon(h) for h in C.HONORS)
+    edu = "".join(f'<li><b>{e(d["degree"])}</b><span>{e(d["school"])} \u00b7 {e(d["meta"])}</span></li>'
                   for d in C.EDUCATION)
     return f"""<section class="hero"><div class="wrap">
 <div class="hg"><div class="hl">
@@ -333,9 +366,9 @@ def home():
 <h2>Roles, every bullet as written.</h2></div>{xp}</div></section>
 
 <section id="more"><div class="wrap two">
-<div><div class="sh"><span class="k">Publications</span><h2>{["Zero","One","Two","Three","Four"][len(C.PUBLICATIONS)]} papers.</h2></div><ul class="rows">{pubs}</ul></div>
-<div><div class="sh"><span class="k">Recognition</span><h2>And a few more.</h2></div><ul class="rows">{hon}</ul>
-<ul class="rows" style="margin-top:28px">{edu}</ul></div></div></section>"""
+<div><div class="sh"><span class="k">Publications</span><h2>{["Zero","One","Two","Three","Four"][len(C.PUBLICATIONS)]} papers.</h2></div><ul class="rows">{pubs}</ul>
+<div class="sh" style="margin-top:clamp(32px,4vw,56px)"><span class="k">Education</span><h2>Where I studied.</h2></div><ul class="rows">{edu}</ul></div>
+<div><div class="sh"><span class="k">Recognition</span><h2>And a few more.</h2></div><ul class="hons">{hon}</ul></div></div></section>"""
 
 
 def case(i):
@@ -368,6 +401,9 @@ def case(i):
 def build():
     DIST.mkdir(exist_ok=True)
     (DIST / "styles.css").write_text((HERE / "src/styles.css").read_text())
+    (DIST / "logos").mkdir(exist_ok=True)
+    for f in (HERE / "src/assets/logos").iterdir():
+        (DIST / "logos" / f.name).write_bytes(f.read_bytes())
     (DIST / "icons.svg").write_text((HERE / "src/assets/icons.svg").read_text())
     (DIST / "me.webp").write_bytes((HERE / "src/assets/me.webp").read_bytes())
     (DIST / "app.js").write_text((HERE / "src/app.js").read_text())

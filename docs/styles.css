@@ -236,3 +236,23 @@ a.ln:hover{text-decoration-color:var(--hot)}
 .rows a span{color:var(--acc)}
 footer .l a{text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:4px}
 footer p+p{margin-top:6px;font-size:12px}
+/* experience logos on the left; publications, recognition */
+summary{grid-template-columns:44px minmax(0,1fr) auto;column-gap:14px}
+summary .co{grid-column:1;grid-row:1/span 3;align-self:start}
+summary b{grid-column:2}
+summary>span:not(.co):not(.lg){grid-column:3;grid-row:1}
+summary small{grid-column:2/-1}
+summary .lg{grid-column:2/-1}
+.co{display:inline-grid;place-items:center;width:44px;height:44px;border-radius:12px;background:#fff;border:1px solid var(--line);overflow:hidden;color:#14161c}
+.co img{width:32px;height:32px;object-fit:contain;image-rendering:auto}
+.co .ic{width:28px;height:28px}
+.co.mn{background:var(--panel);color:var(--mut);font:650 13px var(--mono);letter-spacing:.04em}
+details ul{margin-left:58px}
+@media(max-width:720px){summary{grid-template-columns:44px minmax(0,1fr)}summary>span:not(.co):not(.lg){grid-column:2;grid-row:auto}details ul{margin-left:0}}
+.rows a{display:grid;gap:4px}
+.hons{display:grid;gap:12px}
+.hn{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 14px;padding:16px 18px;background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--acc);border-radius:12px}
+.hn b{display:block;font-weight:650;font-size:16.5px;letter-spacing:-.01em}
+.hn .org{display:block;font:600 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--acc);margin-top:3px}
+.hn p{grid-column:1/-1;color:var(--mut);font-size:14.5px}
+.hn .wh{grid-row:1;grid-column:2;font:600 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--mut);white-space:nowrap;align-self:start;border:1px solid var(--line);border-radius:99px;padding:4px 10px}

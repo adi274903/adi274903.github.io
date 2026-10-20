@@ -8,7 +8,7 @@ SLUGS = {"qwen": "Qwen", "googlecloud": "Google Cloud", "googlegemini": "Gemini"
          "databricks": "Databricks", "apachespark": "PySpark", "oracle": "Oracle", "python": "Python",
          "spacy": "spaCy", "fastapi": "FastAPI", "streamlit": "Streamlit", "anthropic": "Claude",
          "mistralai": "Mistral", "deepseek": "DeepSeek", "amazonwebservices": "AWS Bedrock", "vllm": "vLLM",
-         "tensorflow": "TensorFlow", "scikitlearn": "scikit-learn"}
+         "tata": "Tata", "tensorflow": "TensorFlow", "scikitlearn": "scikit-learn"}
 out = ['<svg xmlns="http://www.w3.org/2000/svg" style="display:none">']
 for slug, name in SLUGS.items():
     svg = urllib.request.urlopen(f"https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/{slug}.svg", timeout=20).read().decode()
