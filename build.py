@@ -29,8 +29,11 @@ NAME, ROLE = C.NAME, C.ROLE
 # ------------------------------------------------------------------ authored copy
 # Presentation only; every factual clause is a compression of a GT3 bullet.
 TRACKS = [("all", "All"), ("ai", "AI engineer"), ("fintech", "Fintech"), ("health", "Healthtech")]
+_BODY = C.THESIS.split(" - ", 1)[1].split(" Optimization")[0]
+SUMMARY = _BODY[0].upper() + _BODY[1:]          # GT summary without its role title and motto, verbatim
+MOTTO = C.THESIS[C.THESIS.index("Optimization"):]
 LEDE = {
-    "ai": S.AUTHORED["hero_lede"],
+    "ai": SUMMARY,
     "fintech": "Governed MCP agents, fraud-detection NLP and automated credit reporting, "
                "backed by production RAG and LLM evaluation.",
     "health": "Clinical language models, physician-rated RAG and healthcare price-transparency "
@@ -173,7 +176,7 @@ CHAT_BTN = "" if STATIC else ("<button class=\"fab\" id=\"chat-open\" type=\"but
 
 
 def shell(title, desc, body, depth_attr="", page="index"):
-    nav = ('<a class="opt" href="index.html#work">Work</a><a class="opt mh" href="index.html#about">About</a><a class="opt mh" href="index.html#results">Results</a>'
+    nav = ('<a class="opt" href="index.html#work">Work</a><a class="opt mh" href="index.html#results">Results</a>'
            '<a class="opt mh" href="index.html#stack">Stack</a><a class="opt" href="index.html#contact">Contact</a>')
     return f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
@@ -235,14 +238,17 @@ def home():
     hon = "".join(f"<li><b>{e(h)}</b></li>" for h in C.HONORS)
     edu = "".join(f'<li><b>{e(d["degree"])}</b><span>{e(d["school"])} · {e(d["meta"])}</span></li>'
                   for d in C.EDUCATION)
-    return f"""<section class="hero"><div class="wrap hg"><div class="hl">
+    return f"""<section class="hero"><div class="wrap">
+<div class="hg"><div class="hl">
 <div class="k"><b>{e(ROLE)}</b><span>{e(C.LOCATION)}</span><span>{e(C.AVAILABILITY)}</span></div>
 <h1 class="name"><span>{e(NAME.split()[0])}</span><span>{e(NAME.split()[1])}</span></h1>
 {ledes}
+<p class="motto">{e(MOTTO)}</p>
 <div class="cta"><a class="btn p" href="{MAIL}">Book a chat</a><a class="btn" href="#work">See the work</a>
 <a class="btn" href="{C.LINKEDIN}" rel="noopener">LinkedIn \u2197</a></div>
 <div class="tracks"><span class="k">View for</span><div class="seg" role="group" aria-label="Role track">{seg}</div></div>
-</div><aside class="hr" aria-label="Headline results"><span class="k">At a glance</span>{stats}</aside></div></section>
+</div><figure class="pt hp"><img src="me.webp" width="320" height="320" alt="Portrait of {e(NAME)}" decoding="async" fetchpriority="high"></figure></div>
+{stats}</div></section>
 
 <section id="work"><div class="wrap"><div class="sh"><span class="k">Selected work</span>
 <h2>Eight projects, each with the number it produced.</h2>
@@ -260,13 +266,6 @@ def home():
 <p class="cap">A darker cell means more bullets. Retrieval and evaluation run through most of the work; fine-tuning is concentrated in one project and the 4.2B model behind it.</p>
 <div class="sh" style="margin-top:clamp(40px,5vw,70px)"><span class="k">Timeline</span><h2>August 2023 to now.</h2></div>
 <div class="scroll">{CH.timeline(TIMELINE)}</div></div></section>
-
-<section id="about"><div class="wrap ab">
-<figure class="pt"><img src="me.webp" width="320" height="320" alt="Portrait of {e(NAME)}" decoding="async" loading="lazy"></figure>
-<div><div class="sh"><span class="k">About</span><h2>{e(NAME)}</h2></div>
-<p class="abt">{e(ROLE)} based in {e(C.LOCATION)} ({e(C.AVAILABILITY.lower())}). Right now: {e(C.EXPERIENCE[0]["role"])} at {e(C.EXPERIENCE[0]["org"])} ({e(C.EXPERIENCE[0]["period"])}). Before that: {e(C.EXPERIENCE[1]["role"])} with {e(C.EXPERIENCE[1]["org"])} ({e(C.EXPERIENCE[1]["period"])}).</p>
-<p class="quote">{e(C.THESIS.split(". ")[-1])}</p>
-<ul class="rows" style="margin-top:22px">{edu}</ul></div></div></section>
 
 <section id="experience"><div class="wrap"><div class="sh"><span class="k">Experience</span>
 <h2>Roles, every bullet as written.</h2></div>{xp}</div></section>
