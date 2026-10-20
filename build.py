@@ -197,6 +197,27 @@ def words_of(n):
 
 
 # ------------------------------------------------------------ deterministic Q&A data (TF-IDF built in the browser)
+ENTRY_OF = {"get_med_qwen": "01", "get_emma": "02", "get_learning_portal": "03", "get_cmu_evaluation": "04",
+            "get_pricing_agent": "05", "get_value_global": "06", "get_tata_capital": "07", "get_jocata": "08"}
+KIND_OF = {"get_value_global": "role", "get_cmu_evaluation": "research", "get_cmu_paper": "research", "get_pricing_agent": "research",
+           "get_stealth_startup": "role", "get_tata_capital": "role", "get_jocata": "role", "get_med_qwen": "project", "get_emma": "project",
+           "get_learning_portal": "project", "get_publications": "papers", "get_recognition": "honors", "get_education": "education",
+           "get_skills": "skills", "get_summary": "overview"}
+ORG_OF = {"get_value_global": "Value Global LLC", "get_cmu_evaluation": "Carnegie Mellon University, NIST-AIMSEC", "get_cmu_paper": "Carnegie Mellon University",
+          "get_pricing_agent": "Carnegie Mellon University, NIST-AIMSEC", "get_stealth_startup": "Stealth Startup", "get_tata_capital": "Tata Capital",
+          "get_jocata": "Jocata Financial Advisory", "get_emma": "Allegheny Health Network", "get_education": "Carnegie Mellon University, REVA University"}
+YEAR_OF = {"get_value_global": "2026", "get_cmu_evaluation": "2025", "get_cmu_paper": "2025", "get_pricing_agent": "2025", "get_stealth_startup": "2025",
+           "get_tata_capital": "2024", "get_jocata": "2023", "get_med_qwen": "2026", "get_emma": "2025", "get_learning_portal": "2025"}
+DOMAINS_EXTRA = {"get_stealth_startup": ["ai"], "get_cmu_paper": ["health", "ai"], "get_publications": [], "get_summary": ["ai"]}
+FACETS = {   # question words -> facet; authored routing vocabulary, never shown as facts
+    "domain": {"fintech": ["fintech", "finance", "financial", "bank", "banking", "credit", "fraud", "payments", "lending", "loan"],
+               "health": ["health", "healthcare", "healthtech", "clinical", "medical", "hospital", "physician", "patient", "pricing transparency"],
+               "ai": ["ai engineer", "ml engineer", "machine learning engineer", "genai", "llm", "ai role"]},
+    "topic": {"Retrieval & RAG": ["retrieval", "rag", "vector search", "search"], "Fine-tuning & training": ["fine-tuning", "finetuning", "fine tuning", "training", "pretraining", "dora"],
+              "Evaluation & benchmarks": ["evaluation", "evaluating", "benchmark", "benchmarks", "metrics"], "Agents & tool use": ["agent", "agents", "agentic", "mcp", "tool use"],
+              "Data engineering": ["data engineering", "pipeline", "pipelines", "sql", "spark", "etl"], "Classical ML & NLP": ["nlp", "classical ml", "xgboost", "machine learning model"]}}
+
+
 def ask_data():
     """The record, chunked into 15 sections (verbatim GT3 lines) plus routing metadata, as one small JSON file."""
     import sections as SEC
@@ -214,7 +235,15 @@ def ask_data():
         chunks = [C.EMMA_PRINT if (tool == "get_emma" and c.startswith("Project EMMA")) else c for c in chunks]
         if tool == "get_skills":
             aliases = aliases + [t.strip().lower() for g, items in C.SKILLS for t in items.split(",") if t.strip()]
-        secs.append(dict(id=tool, title=title, desc=desc, asks=asks, aliases=aliases, chunks=chunks,
+        ent = next((en for en in ENTRIES if en["n"] == ENTRY_OF.get(tool)), None)
+        body = " ".join(chunks)
+        meta = dict(
+            project=title, kind=KIND_OF.get(tool, "record"), org=ORG_OF.get(tool, ""), year=YEAR_OF.get(tool, ""),
+            domains=(ent["tracks"].split() if ent else DOMAINS_EXTRA.get(tool, [])),       # fintech / health / ai (the site's role tags)
+            topics=[name for name, rx in CONCEPTS if re.search(rx, body, re.I)],           # derived: which areas the lines actually mention
+            tech=[n for _, n in icons_in(body)],                                         # derived: tools named in the lines
+            headline=(dict(metric=ent["metric"], note=ent["metric_note"], href=ent["slug"]) if ent else None))
+        secs.append(dict(id=tool, title=title, desc=desc, asks=asks, aliases=aliases, chunks=chunks, meta=meta,
                          links=LINKS.get(tool, []), list=tool in LIST))
     starters = ["What did he do at EMMA AI?", "How fast is the retrieval at Value Global?", "What PubMedQA score did Med-Qwen get?",
                 "Which project fits a fintech role?"]
@@ -226,7 +255,7 @@ def ask_data():
                  for en in ENTRIES if key in en["tracks"].split()]
         tracks[key] = dict(label=label, lead=lead, items=items)
     return dict(
-        sections=secs, starters=starters, tracks=tracks,
+        sections=secs, starters=starters, tracks=tracks, facets=FACETS,
         greeting="Hi. I answer questions about Aditya's projects, results, roles, papers and education, using only his record. Try one of these.",
         decline="I only answer questions about Aditya's record: his projects, results, experience, papers and education. I can't help with that.",
         contact=dict(reply=f"You can reach Aditya at {C.EMAIL}. He is based in {C.LOCATION} ({C.AVAILABILITY.lower()}).",

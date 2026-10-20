@@ -345,3 +345,5 @@ details ul{margin-left:58px}
 .cfw button[disabled]{opacity:.6;cursor:wait}
 .cdone h2{margin-bottom:10px}
 .cdone:focus{outline:none}
+.tg2{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
+.tg2 span{font:600 10px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--mut);border:1px solid var(--line);border-radius:99px;padding:3px 8px}

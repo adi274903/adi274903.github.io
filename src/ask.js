@@ -34,6 +34,11 @@
       meta.appendChild(el("span", "", r.type === "answer" ? "cosine " + r.score.toFixed(2) + " · " + r.how : r.how || "keyword"));
       box.appendChild(meta);
     } else if (r.how) { box.appendChild(el("div", "mt")).appendChild(el("span", "", r.how)); }
+    if (r.meta) {      // the section metadata the match used: organisation, year, topics, tools
+      var tg = el("div", "tg2"), bits = [r.meta.org, r.meta.year].concat((r.meta.domains || []).map(function (x) { return "domain: " + x; }), (r.meta.topics || []).slice(0, 3), (r.meta.tech || []).slice(0, 3));
+      bits.filter(Boolean).forEach(function (t) { tg.appendChild(el("span", "", t)); });
+      box.appendChild(tg);
+    }
     if (r.lead) box.appendChild(rich(el("p", "ld"), r.lead));
     var ul = el("ul", "ls");
     (r.lines || []).forEach(function (t, i) { var li = el("li"); rich(li, t); li.style.setProperty("--i", i); ul.appendChild(li); });

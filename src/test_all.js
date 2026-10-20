@@ -2,8 +2,10 @@
 // Note: both sets have now been used to fix the engine, so this is a regression suite, not a blind test.
 const fs = require("fs"), path = require("path"), E = require("./engine.js");
 const grab = f => eval(fs.readFileSync(path.join(__dirname, f), "utf8").match(/const T = (\[[\s\S]*?\n\]);/)[1]);
-const roles = [["Which project fits a fintech role?", "tracks", "Credit-bureau"], ["Which projects are relevant for healthtech?", "tracks", "Med-Qwen"], ["What fits an AI engineer role?", "tracks", "Chemical safety"], ["Which project suits a banking job?", "tracks", "Credit-bureau"], ["Which project fits a role?", "tracks", "Which kind of role"]];
-const sets = { roles5: roles, dev29: grab("test_engine.js"), second22: grab("test_heldout.js") };
+const roles = [["Which project fits a fintech role?", "tracks", "Credit-bureau"], ["Which projects are relevant for healthtech?", "tracks", "Med-Qwen"], ["What fits an AI engineer role?", "tracks", "Value Global"], ["Which project suits a banking job?", "tracks", "Credit-bureau"], ["Which project fits a role?", "tracks", "Which kind of role"]];
+const facetq = [["Which projects involve retrieval?", "tracks", "Value Global"], ["Which work involves fine-tuning?", "tracks", "Med-Qwen"], ["Any fraud or credit work?", "tracks", "Credit-bureau"], ["Which projects mix healthcare and evaluation?", "tracks", "Med-Qwen|NIST"], ["Show me agent projects for fintech", "tracks", "Value Global|Patient-facing"]];
+const phrasing = [["tell me about his healthcare experience?", "tracks", "EMMA"], ["What is his fintech background?", "tracks", "Tata"], ["clinical work he has done", "tracks", "Med-Qwen"], ["tell me about his experience with retrieval", "tracks", "EMMA"], ["anything about banking", "tracks", "Jocata"]];
+const sets = { phrasing5: phrasing, facets5: facetq, roles5: roles, dev29: grab("test_engine.js"), second22: grab("test_heldout.js") };
 const DATA = JSON.parse(fs.readFileSync(path.join(__dirname, "..", process.argv[2] || "dist", "ask-data.json"), "utf8")); const eng = E.build(DATA);
 let ok = 0, n = 0; const miss = [], per = {};
 for (const [name, T] of Object.entries(sets)) {
