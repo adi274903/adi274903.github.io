@@ -57,7 +57,7 @@ def _metric_row(value):
 
 
 # ---------------------------------------------------------------------- entries
-def _chart_for(n):
+def _chart_for(n, w=CH.W):
     if n == "01":
         return CH.hbars("Med-Qwen-3.5-4B-Instruct · zero-shot greedy", [
             ("PubMedQA · base", 45.60, "45.60", False),
@@ -65,35 +65,35 @@ def _chart_for(n):
             ("MMLU Med", 80.72, "80.72", False), ("MedQA", 67.95, "67.95", False),
             ("AfriMed-QA", 64.80, "64.80", False), ("GPQA Diamond", 50.51, "50.51", False),
             ("MedMCQA", 33.20, "33.20", False)], maxv=100,
-            note="base = Qwen3.5-4B-Base", label="Med-Qwen benchmark scores")
+            note="base = Qwen3.5-4B-Base", label="Med-Qwen benchmark scores", w=w)
     if n == "02":
         return CH.hbars("EMMA · what the +25% rests on", [
             ("+25% accuracy", 25, "+25%", True), ("contexts", 20, "20", False),
             ("physician surveys", 2, "2", False)],
             maxv=50, note="different units, one shared axis for scale only",
-            label="EMMA scale facts")
+            label="EMMA scale facts", w=w)
     if n == "03":
         return CH.hbars("RACE · 15 Deep Research Bench queries", [
             ("Mistral-7B + BART", 0.0668, "0.0668", False),
             ("Claude Sonnet 3.7", 0.4201, "0.4201", True)],
-            note="abstract-only retrieval limited the pipeline")
+            note="abstract-only retrieval limited the pipeline", w=w)
     if n == "04":
         return CH.hbars("NIST-AIMSEC evaluation corpus", [
             ("inclusion list", 28023, "28,023", False), ("records", 17167, "17,167", True),
             ("full-text papers", 15944, "15,944", False)],
-            note="zero run-to-run skew over 10 repeats")
+            note="zero run-to-run skew over 10 repeats", w=w)
     if n == "05":
         return CH.delta("CPT/HCPCS code selection (%)", 82, 91, "82%", "91%", maxv=100,
-                        note="465 synthetic queries")
+                        note="465 synthetic queries", w=w)
     if n == "06":
         return CH.delta("retrieval time (seconds)", 8, 2, "~8 s", "2 s",
-                        note="~1,000 chemical safety data sheets")
+                        note="~1,000 chemical safety data sheets", w=w)
     if n == "07":
         return CH.delta("credit-bureau submission prep (hours)", 72, 2, "3 days", "2 hours",
-                        note="3 days drawn as 72 hours, to scale")
+                        note="3 days drawn as 72 hours, to scale", w=w)
     if n == "08":
         return CH.hbars("fraud identification · F1", [("F1", 0.86, "0.86", True)],
-                        maxv=1, note="scale 0 to 1")
+                        maxv=1, note="scale 0 to 1", w=w)
 
 
 def _linkify(u):
@@ -129,7 +129,7 @@ for n, ex, key, kick in (("07", C.TATA, "3 days → 2 hours", "Credit reporting"
         tracks="fintech ai" if n == "08" else "fintech", bullets=ex["bullets"],
         source=f'{ex["org"]} · {ex["meta"]}', url=""))
 for en in ENTRIES:
-    en["chart"] = _chart_for(en["n"])
+    en["chart"] = f'<div class="dw">{_chart_for(en["n"])}</div><div class="mw">{_chart_for(en["n"], 360)}</div>'
     en["slug"] = f'case-{en["n"]}.html'
 
 # ------------------------------------------------------------------ evidence matrix
@@ -173,8 +173,8 @@ CHAT_BTN = "" if STATIC else ("<button class=\"fab\" id=\"chat-open\" type=\"but
 
 
 def shell(title, desc, body, depth_attr="", page="index"):
-    nav = ('<a class="opt" href="index.html#work">Work</a><a class="opt" href="index.html#results">Results</a>'
-           '<a class="opt" href="index.html#stack">Stack</a><a class="opt" href="index.html#contact">Contact</a>')
+    nav = ('<a class="opt" href="index.html#work">Work</a><a class="opt mh" href="index.html#results">Results</a>'
+           '<a class="opt mh" href="index.html#stack">Stack</a><a class="opt" href="index.html#contact">Contact</a>')
     return f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">

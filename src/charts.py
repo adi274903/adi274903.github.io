@@ -6,15 +6,16 @@ from html import escape as e
 W = 560
 
 
-def _svg(h, label, body, cls="ch"):
-    return (f'<svg class="{cls}" viewBox="0 0 {W} {h}" role="img" aria-label="{e(label)}">'
+def _svg(h, label, body, cls="ch", w=W):
+    return (f'<svg class="{cls}" viewBox="0 0 {w} {h}" role="img" aria-label="{e(label)}">'
             f'{body}</svg>')
 
 
-def hbars(title, rows, maxv=None, note="", label=None):
+def hbars(title, rows, maxv=None, note="", label=None, w=W):
     """rows: [(label, value, shown, hot)] on one shared scale."""
     maxv = maxv or max(r[1] for r in rows)
-    rh, top, x0, x1 = 34, 26, 140, W - 96
+    rh, top = 34, 26
+    x0, x1 = (140, w - 96) if w >= W else (150, w - 66)
     h = top + rh * len(rows) + (22 if note else 6)
     out = [f'<text class="t" x="0" y="12">{e(title)}</text>']
     for i, (lab, v, shown, hot) in enumerate(rows):
@@ -28,12 +29,12 @@ def hbars(title, rows, maxv=None, note="", label=None):
             f'<text class="v" x="{x1 + 10}" y="{y + 14}">{e(shown)}</text>')
     if note:
         out.append(f'<text class="n" x="0" y="{h - 6}">{e(note)}</text>')
-    return _svg(h, label or title, "".join(out))
+    return _svg(h, label or title, "".join(out), w=w)
 
 
-def delta(title, before, after, b_text, a_text, note="", maxv=None):
+def delta(title, before, after, b_text, a_text, note="", maxv=None, w=W):
     return hbars(title, [("before", before, b_text, False), ("after", after, a_text, True)],
-                 maxv=maxv, note=note, label=f"{title}: {b_text} to {a_text}")
+                 maxv=maxv, note=note, label=f"{title}: {b_text} to {a_text}", w=w)
 
 
 def matrix(rows, cols, hits, title):
