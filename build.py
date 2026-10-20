@@ -173,7 +173,7 @@ CHAT_BTN = "" if STATIC else ("<button class=\"fab\" id=\"chat-open\" type=\"but
 
 
 def shell(title, desc, body, depth_attr="", page="index"):
-    nav = ('<a class="opt" href="index.html#work">Work</a><a class="opt mh" href="index.html#results">Results</a>'
+    nav = ('<a class="opt" href="index.html#work">Work</a><a class="opt mh" href="index.html#about">About</a><a class="opt mh" href="index.html#results">Results</a>'
            '<a class="opt mh" href="index.html#stack">Stack</a><a class="opt" href="index.html#contact">Contact</a>')
     return f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
@@ -261,10 +261,17 @@ def home():
 <div class="sh" style="margin-top:clamp(40px,5vw,70px)"><span class="k">Timeline</span><h2>August 2023 to now.</h2></div>
 <div class="scroll">{CH.timeline(TIMELINE)}</div></div></section>
 
+<section id="about"><div class="wrap ab">
+<figure class="pt"><img src="me.webp" width="320" height="320" alt="Portrait of {e(NAME)}" decoding="async" loading="lazy"></figure>
+<div><div class="sh"><span class="k">About</span><h2>{e(NAME)}</h2></div>
+<p class="abt">{e(ROLE)} based in {e(C.LOCATION)} ({e(C.AVAILABILITY.lower())}). Right now: {e(C.EXPERIENCE[0]["role"])} at {e(C.EXPERIENCE[0]["org"])} ({e(C.EXPERIENCE[0]["period"])}). Before that: {e(C.EXPERIENCE[1]["role"])} with {e(C.EXPERIENCE[1]["org"])} ({e(C.EXPERIENCE[1]["period"])}).</p>
+<p class="quote">{e(C.THESIS.split(". ")[-1])}</p>
+<ul class="rows" style="margin-top:22px">{edu}</ul></div></div></section>
+
 <section id="experience"><div class="wrap"><div class="sh"><span class="k">Experience</span>
 <h2>Roles, every bullet as written.</h2></div>{xp}</div></section>
 
-<section id="about"><div class="wrap two">
+<section id="more"><div class="wrap two">
 <div><div class="sh"><span class="k">Publications</span><h2>{["Zero","One","Two","Three","Four"][len(C.PUBLICATIONS)]} papers.</h2></div><ul class="rows">{pubs}</ul></div>
 <div><div class="sh"><span class="k">Recognition</span><h2>And a few more.</h2></div><ul class="rows">{hon}</ul>
 <ul class="rows" style="margin-top:28px">{edu}</ul></div></div></section>"""
@@ -300,6 +307,7 @@ def case(i):
 def build():
     DIST.mkdir(exist_ok=True)
     (DIST / "styles.css").write_text((HERE / "src/styles.css").read_text())
+    (DIST / "me.webp").write_bytes((HERE / "src/assets/me.webp").read_bytes())
     (DIST / "app.js").write_text((HERE / "src/app.js").read_text())
     if not STATIC:
         (DIST / "chat.js").write_text((HERE / "src/chat.js").read_text())

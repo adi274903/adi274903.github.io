@@ -202,3 +202,10 @@ footer p{font-size:13px;color:var(--mut)}
 }
 .mw{display:none}
 @media(max-width:720px){.dw{display:none}.mw{display:block}}
+/* about */
+.ab{display:grid;grid-template-columns:minmax(0,260px) minmax(0,1fr);gap:clamp(24px,4vw,56px);align-items:start}
+.pt{margin:0}
+.pt img{width:100%;height:auto;aspect-ratio:1;object-fit:cover;border-radius:22px;border:1px solid var(--line);box-shadow:0 0 0 6px var(--glow)}
+.abt{font-size:clamp(17px,1.8vw,21px);line-height:1.6;max-width:56ch}
+.quote{margin-top:18px;padding-left:16px;border-left:2px solid var(--hot);font-size:clamp(16px,1.6vw,19px);color:var(--mut);max-width:56ch}
+@media(max-width:720px){.ab{grid-template-columns:1fr}.pt{max-width:150px}}
