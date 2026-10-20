@@ -63,6 +63,11 @@
     busy = false; scroll(); input.focus();
   }
   form.onsubmit = function (e) { e.preventDefault(); ask(input.value); };
+  var hwb = d.getElementById("hwb"), hwp = d.getElementById("hwp"), box = d.getElementById("askp");
+  hwb.onclick = function () {                       // "How it works": explanation + under-the-hood details on every answer
+    var open = hwp.hidden;
+    hwp.hidden = !open; hwb.setAttribute("aria-expanded", open); box.classList.toggle("xray", open);
+  };
   fetch("ask-data.json").then(function (r) { return r.json(); }).then(function (data) {
     eng = AskEngine.build(data);
     chips(data.starters.concat(["What awards has he won?"]), starts);

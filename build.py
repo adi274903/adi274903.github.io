@@ -548,18 +548,18 @@ def page_ask():
     return f"""<section class="head"><div class="wrap">
 <span class="k">Ask my record</span>
 <h1 class="askh">Ask about my work.</h1>
-<p class="lede" style="max-width:62ch">No AI model runs here. Your question is turned into a vector and compared, by cosine similarity,
-with {words_of(n_sec)} sections of my record, split into {words_of(n_lines)} short lines. The best match is quoted back to you,
-with its source, so every answer is something I wrote about my own work.</p></div></section>
-<section style="padding-top:0;border:0"><div class="wrap askw">
-<div class="askp"><div class="thread" id="thread" aria-live="polite"></div>
+<p class="lede" style="max-width:60ch">Ask about my projects, results, roles or papers, or which of my work fits a fintech, healthtech or AI engineering role.</p></div></section>
+<section style="padding-top:0;border:0"><div class="wrap askn">
+<div class="hwbar"><button class="hwb" id="hwb" type="button" aria-expanded="false" aria-controls="hwp">How it works <i aria-hidden="true">\u25be</i></button></div>
+<div class="hwp" id="hwp" hidden><ol>
+<li><b>Chunk.</b> My record is cut into {words_of(n_sec)} sections, one per project, role or topic, split into {words_of(n_lines)} short lines. Each section carries metadata: project, organisation, year, domain, topics and tools.</li>
+<li><b>Match.</b> No AI model runs here. Each question and each line becomes a TF-IDF vector; names such as EMMA or Tata pick the section, metadata filters pick projects by topic or role, and cosine similarity picks the best lines.</li>
+<li><b>Quote.</b> A fixed template writes the reply around those lines. Same question, same answer, every time.</li></ol>
+<p class="cap">It refuses anything outside my record, such as coding help or general questions. It was checked on fifty-six questions I wrote; every set was used to tune it, so treat that as a regression check, not a blind test. With this panel open, each answer also shows its similarity score and metadata tags.</p></div>
+<div class="askp" id="askp"><div class="thread" id="thread" aria-live="polite"></div>
 <div class="starts" id="starts" aria-label="Suggested questions"></div>
 <form id="askf" class="askf"><input id="askq" type="text" maxlength="300" autocomplete="off" placeholder="Ask about EMMA AI, Med-Qwen, Value Global, fintech work\u2026" aria-label="Your question"><button type="submit">Ask</button></form></div>
-<aside class="how"><span class="k">How it works</span>
-<ol><li><b>Chunk.</b> My record is cut into {words_of(n_sec)} sections, one per project, role or topic.</li>
-<li><b>Match.</b> Each question and each line becomes a TF-IDF vector. Names such as EMMA or Tata pick the section; cosine similarity picks the best lines inside it.</li>
-<li><b>Quote.</b> A fixed template writes the reply around those lines. Same question, same answer, every time.</li></ol>
-<p class="cap">It refuses anything outside my record, such as coding help or general questions. It was checked on fifty-six questions I wrote; every set was used to tune it, so treat that as a regression check, not a blind test.</p></aside></div></section>"""
+</div></section>"""
 
 
 FORM_ENDPOINT = "https://formsubmit.co/ajax/" + C.EMAIL      # FormSubmit: free, no account; first message needs a one-time confirmation

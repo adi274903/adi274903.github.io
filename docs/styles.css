@@ -347,3 +347,18 @@ details ul{margin-left:58px}
 .cdone:focus{outline:none}
 .tg2{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
 .tg2 span{font:600 10px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--mut);border:1px solid var(--line);border-radius:99px;padding:3px 8px}
+/* Ask page: single column; "How it works" is a closed tab; the under-the-hood details show only when it is open */
+.askn{max-width:860px}
+.hwbar{display:flex;justify-content:flex-end;margin-bottom:10px}
+.hwb{font:600 11px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--mut);background:none;border:1px solid var(--line);border-radius:99px;padding:8px 14px;cursor:pointer}
+.hwb:hover{color:var(--ink);border-color:var(--acc)}
+.hwb[aria-expanded=true]{color:var(--acc);border-color:var(--acc)}
+.hwb i{font-style:normal;display:inline-block;transition:transform .2s}
+.hwb[aria-expanded=true] i{transform:rotate(180deg)}
+.hwp{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px 22px;margin-bottom:16px}
+.hwp[hidden]{display:none}
+.hwp ol{display:grid;gap:12px;padding-left:20px;list-style:decimal}
+.hwp li{font-size:15px;color:var(--mut)}
+.hwp li b{color:var(--ink)}
+.askp:not(.xray) .mt span,.askp:not(.xray) .tg2{display:none}
+.askp:not(.xray) .mt{margin-bottom:6px}
