@@ -17,6 +17,7 @@ HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE / "src"))
 sys.path.insert(0, str(HERE.parent / "portfolio"))
 sys.path.insert(0, str(HERE.parent / "portfolio" / "design"))
+sys.path.insert(0, str(HERE.parent / "smollm_chatbot"))
 import charts as CH  # noqa: E402
 import content as C  # noqa: E402
 import gt  # noqa: E402
@@ -25,7 +26,7 @@ import webcontent as S  # noqa: E402
 STATIC = "--static" in sys.argv           # published build: no chat button (Pages cannot run the model)
 DIST = HERE / ("docs" if STATIC else "dist")
 import hashlib
-VER = hashlib.md5(b"".join((HERE / "src" / f).read_bytes() for f in ("styles.css", "app.js", "chat.js"))).hexdigest()[:8]
+VER = hashlib.md5(b"".join((HERE / "src" / f).read_bytes() for f in ("styles.css", "app.js", "engine.js", "ask.js"))).hexdigest()[:8]
 NAME, ROLE = C.NAME, C.ROLE
 
 # ------------------------------------------------------------------ authored copy
@@ -187,6 +188,44 @@ def mq_table():
             f'<a class="ln" href="https://huggingface.co/adi274903/Med-Qwen-3.5-4B-Instruct" rel="noopener">the published model card</a>.</p>')
 
 
+_W = "zero one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen".split()
+_T = {2: "twenty", 3: "thirty", 4: "forty", 5: "fifty", 6: "sixty", 7: "seventy"}
+
+
+def words_of(n):
+    return _W[n] if n < 20 else _T[n // 10] + ("" if n % 10 == 0 else "-" + _W[n % 10])
+
+
+# ------------------------------------------------------------ deterministic Q&A data (TF-IDF built in the browser)
+def ask_data():
+    """The record, chunked into 15 sections (verbatim GT3 lines) plus routing metadata, as one small JSON file."""
+    import sections as SEC
+    LIST = {"get_publications", "get_recognition", "get_education", "get_skills", "get_summary"}
+    LINKS = {
+        "get_med_qwen": [{"label": "Model on Hugging Face", "href": "https://huggingface.co/adi274903/Med-Qwen-3.5-4B-Instruct"}],
+        "get_learning_portal": [{"label": "Project on GitHub", "href": "https://github.com/adi274903/NLX_Assignment3"}],
+        "get_publications": [{"label": p["venue"], "href": p["url"]} for p in C.PUBLICATIONS],
+        "get_recognition": [{"label": "11-785 leaderboard", "href": "https://www.kaggle.com/competitions/11785-hw-2-p-2-face-verification-spring-2025/leaderboard"},
+                            {"label": "AMIA poster (PDF)", "href": "https://workshopamia2025.github.io/AMIA-KDDM-2025/posters/KDDM_Poster%5BCMU%5D.pdf"}],
+        "get_cmu_paper": [{"label": "arXiv:2503.22954", "href": C.ARXIV}],
+    }
+    secs = []
+    for tool, title, desc, asks, aliases, chunks in SEC.SECTIONS:
+        chunks = [C.EMMA_PRINT if (tool == "get_emma" and c.startswith("Project EMMA")) else c for c in chunks]
+        if tool == "get_skills":
+            aliases = aliases + [t.strip().lower() for g, items in C.SKILLS for t in items.split(",") if t.strip()]
+        secs.append(dict(id=tool, title=title, desc=desc, asks=asks, aliases=aliases, chunks=chunks,
+                         links=LINKS.get(tool, []), list=tool in LIST))
+    starters = ["What did he do at EMMA AI?", "How fast is the retrieval at Value Global?", "What PubMedQA score did Med-Qwen get?",
+                "Which project fits a fintech role?"]
+    return dict(
+        sections=secs, starters=starters,
+        greeting="Hi. I answer questions about Aditya's projects, results, roles, papers and education, using only his record. Try one of these.",
+        decline="I only answer questions about Aditya's record: his projects, results, experience, papers and education. I can't help with that.",
+        contact=dict(reply=f"You can reach Aditya at {C.EMAIL}. He is based in {C.LOCATION} ({C.AVAILABILITY.lower()}).",
+                     links=[{"label": "Email", "href": "mailto:" + C.EMAIL}, {"label": "LinkedIn", "href": C.LINKEDIN},
+                            {"label": "GitHub", "href": C.GITHUB}, {"label": "Portfolio", "href": "https://adi274903.github.io/"}]))
+
 # ---------------------------------------------------------------------- entries
 def _chart_for(n, w=CH.W):
     if n == "01":
@@ -306,11 +345,11 @@ ICON = ("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0
 MAIL = f"mailto:{C.EMAIL}?subject=" + "Let%27s%20talk"
 
 
-CHAT_BTN = "" if STATIC else ("<button class=\"fab\" id=\"chat-open\" type=\"button\" aria-controls=\"chat\" aria-expanded=\"false\"><i></i>Ask my record</button>\n")
+CHAT_BTN = '<a class="fab" id="ask-open" href="ask.html"><i></i>Ask my record</a>\n'
 
 
-def shell(title, desc, body, depth_attr="", page="index"):
-    nav = ('<a class="opt" href="index.html#work">Work</a><a class="opt mh" href="index.html#results">Results</a>'
+def shell(title, desc, body, depth_attr="", page="index", extra_js="", fab=True):
+    nav = ('<a class="opt" href="index.html#work">Work</a><a class="opt" href="ask.html">Ask</a><a class="opt mh" href="index.html#results">Results</a>'
            '<a class="opt mh" href="index.html#stack">Stack</a><a class="opt" href="index.html#contact">Contact</a>')
     return f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
@@ -331,7 +370,7 @@ def shell(title, desc, body, depth_attr="", page="index"):
 <p>{e(NAME)} · {e(ROLE)} · {e(C.CONTACT_LINE)}</p>
 <p>Logos are trademarks of their owners; icons from Simple Icons (CC0).</p>
 </div></footer>
-{CHAT_BTN}<script src="app.js?v={VER}" defer></script></body></html>"""
+{CHAT_BTN if fab else ""}{extra_js}<script src="app.js?v={VER}" defer></script></body></html>"""
 
 
 def card(en):
@@ -467,6 +506,26 @@ def case(i):
     return shell(f'{en["title"]} — {NAME}', en["metric"] + " — " + en["metric_note"], body)
 
 
+def page_ask():
+    data = ask_data()
+    n_sec = len(data["sections"]); n_lines = sum(len(s["chunks"]) for s in data["sections"])
+    return f"""<section class="head"><div class="wrap">
+<span class="k">Ask my record</span>
+<h1 class="askh">Ask about my work.</h1>
+<p class="lede" style="max-width:62ch">No AI model runs here. Your question is turned into a vector and compared, by cosine similarity,
+with {words_of(n_sec)} sections of my record, split into {words_of(n_lines)} short lines. The best match is quoted back to you,
+with its source, so every answer is something I wrote about my own work.</p></div></section>
+<section style="padding-top:0;border:0"><div class="wrap askw">
+<div class="askp"><div class="thread" id="thread" aria-live="polite"></div>
+<div class="starts" id="starts" aria-label="Suggested questions"></div>
+<form id="askf" class="askf"><input id="askq" type="text" maxlength="300" autocomplete="off" placeholder="Ask about EMMA AI, Med-Qwen, Value Global, fintech work\u2026" aria-label="Your question"><button type="submit">Ask</button></form></div>
+<aside class="how"><span class="k">How it works</span>
+<ol><li><b>Chunk.</b> My record is cut into {words_of(n_sec)} sections, one per project, role or topic.</li>
+<li><b>Match.</b> Each question and each line becomes a TF-IDF vector. Names such as EMMA or Tata pick the section; cosine similarity picks the best lines inside it.</li>
+<li><b>Quote.</b> A fixed template writes the reply around those lines. Same question, same answer, every time.</li></ol>
+<p class="cap">It refuses anything outside my record, such as coding help or general questions. It was checked on fifty-one questions I wrote; the first twenty-nine were used to tune it, so treat that as a regression check, not a blind test.</p></aside></div></section>"""
+
+
 def build():
     DIST.mkdir(exist_ok=True)
     (DIST / "styles.css").write_text((HERE / "src/styles.css").read_text())
@@ -475,11 +534,14 @@ def build():
     (DIST / "logos").mkdir(exist_ok=True)
     for f in (HERE / "src/assets/logos").iterdir():
         (DIST / "logos" / f.name).write_bytes(f.read_bytes())
+    import json
+    (DIST / "ask-data.json").write_text(json.dumps(ask_data(), ensure_ascii=False, separators=(",", ":")))
+    (DIST / "engine.js").write_text((HERE / "src/engine.js").read_text())
     (DIST / "icons.svg").write_text((HERE / "src/assets/icons.svg").read_text())
     (DIST / "me.webp").write_bytes((HERE / "src/assets/me.webp").read_bytes())
     (DIST / "app.js").write_text((HERE / "src/app.js").read_text())
-    if not STATIC:
-        (DIST / "chat.js").write_text((HERE / "src/chat.js").read_text())
+    (DIST / "ask.js").write_text((HERE / "src/ask.js").read_text())
+    (DIST / "ask.html").write_text(shell(f"Ask my record \u2014 {NAME}", "Ask about Aditya\u2019s projects, results and experience. Answers are quoted from his record by cosine similarity, with no AI model.", page_ask(), page="ask.html", fab=False, extra_js=f'<script src="engine.js?v={VER}" defer></script><script src="ask.js?v={VER}" defer></script>'))
     (DIST / "index.html").write_text(shell(
         f"{NAME} — {ROLE}",
         "AI engineer for clinical and financial data: production RAG, governed agents, "
