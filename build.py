@@ -39,9 +39,8 @@ LEDE = {      # one plain-language summary per track; every figure is a GT3 numb
     "ai": "I build and evaluate AI systems for clinical and financial data. Recently: a 4.2B clinical model that "
           "beat MedGemma-1.5-4B-it on all six benchmarks, an agentic retrieval prototype cut from ~8 seconds to 2, "
           "and an evaluation pipeline with zero run-to-run skew.",
-    "fintech": "I build and evaluate AI for financial data: credit-bureau reporting cut from 3 days to 2 hours at "
-               "Tata Capital, a fraud-identification model at 0.86 F1 at Jocata, and governed agent access to "
-               "Oracle E-Business Suite at Value Global.",
+    "fintech": "Credit-bureau reporting cut from 3 days to 2 hours at Tata Capital and a fraud-identification "
+               "model at 0.86 F1 at Jocata, backed by production RAG and LLM evaluation.",
     "health": "I build and evaluate AI for clinical settings: a 4.2B clinical model that beat MedGemma-1.5-4B-it on "
               "all six benchmarks, physician-rated RAG accuracy up 25% in EMMA, and a pricing agent that lifted "
               "CPT/HCPCS code selection from 82% to 91%.",
@@ -52,9 +51,7 @@ STATS = {
            ("97/100", "documents with all PII removed"),
            ("82% → 91%", "CPT/HCPCS code selection")],
     "fintech": [("3 days → 2 hours", "credit-bureau submission prep, Tata Capital"),
-                ("0.86", "F1 for fraud identification, Jocata"),
-                ("30-40", "governed MCP queries on Oracle E-Business Suite"),
-                ("82% → 91%", "CPT/HCPCS code selection")],
+                ("0.86", "F1 for fraud identification, Jocata")],
     "health": [("66.20", "PubMedQA for Med-Qwen, vs 45.60 for its base"),
                ("+25%", "physician-rated accuracy + completeness, EMMA"),
                ("17,167", "schema-bound evaluation records"),
@@ -314,7 +311,7 @@ for c in S.CARDS:
     ENTRIES.append(dict(c, label={"01": "Med-Qwen", "02": "EMMA", "03": "PLP", "04": "NIST eval",
                                   "05": "Pricing", "06": "Value Global"}[c["n"]]))
 tr = {"01": "ai health", "02": "ai health", "03": "ai", "04": "ai health",
-      "05": "ai health fintech", "06": "ai fintech"}
+      "05": "ai health", "06": "ai"}
 bul = {"01": C.PROJECTS[0]["bullets"], "02": [C.EMMA_PRINT], "03": C.PROJECTS[2]["bullets"],
        "04": C.EXPERIENCE[1]["bullets"][:2], "05": C.EXPERIENCE[1]["bullets"][3:4],
        "06": C.EXPERIENCE[0]["bullets"]}

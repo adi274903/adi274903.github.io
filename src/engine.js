@@ -49,6 +49,7 @@
   var LISTQ = /\b(which|any|list|show|every|all)\b.{0,40}\b(projects?|work|experience|roles?|research)\b|\bwhat (projects?|work|experience)\b|\b(fit|fits|relevant|suit|suits|involve|involves|involving|related to|focused on|touch|touches)\b/i;
   var HELP = /\b(how (can|could|would) (he|aditya) (help|fit|contribute|add)|what can (he|aditya) do for|why (hire|should (i|we))|help me|can (he|aditya) help|value (he|aditya) (brings|adds))\b/i;
   var EXPER = /\b(experience|experiences|background|career|work history|track record|what (has|have) (he|aditya) done|where has (he|aditya) worked|resume|cv)\b|\b(roles?|positions?|jobs?)\b.{0,25}\b(held|had|has|have)\b/i;
+  var YEARS = /\b(how (many|long)\b.{0,25}\b(years?|months?)|years? of (experience|work)|how (much|long)\b.{0,25}\bexperience|how long (has|have|did) (he|aditya) (worked|been)|how experienced|seniority|statistics|stats|by the numbers|in numbers)\b/i;
   var SUPER = /\b(strongest|best|proudest|most impressive|top|favou?rite|flagship|biggest)\b.{0,25}\b(project|work|result|achievement|win)\b/i;
   var ALLPROJ = /\b(what|which|list|show|give me)\b.{0,25}\b(projects?|work)\b/i;
   var YESNO = /\b(has|have|does|did|is|can) (he|aditya)\b.{0,50}\b(used|worked|built|done|experience|know|with|fine-?tuned|published|led)\b|\bany experience\b|\bexperience (with|in)\b/i;
@@ -195,18 +196,37 @@
           links: hl.map(function (sec) { return { label: sec.s.meta.project, href: sec.s.meta.headline.href }; }).slice(0, 8),
           suggestions: ["Which project fits a fintech role?", "Tell me about his healthcare experience", "What is his experience?"] };
       }
-      if (EXPER.test(q) && noFacet && !namedAny) {
-        var seen = {}, rows = [];
+      if (noFacet && ((EXPER.test(q) && !namedAny) || YEARS.test(q))) {
+        var MON = { Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5, Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11 }, now = new Date(), nowM = now.getFullYear() * 12 + now.getMonth();
+        var seen = {}, rows = [], spans = [], orgs = {};
         secs.forEach(function (sec) {
           var m = sec.s.meta || {};
           if (m.kind !== "role" && m.kind !== "research") return;
-          var h = sec.s.chunks[0].match(/^([^(]+?)\s*\(([^)]+)\):/);
-          var key = h ? h[1] + h[2] : sec.s.id;
+          var h = sec.s.chunks[0].match(/^([^(]+?)\s*\(([A-Z][a-z]{2}) (\d{4}) - (?:([A-Z][a-z]{2}) (\d{4})|Present)\):/);
+          var key = h ? h[1] + h[2] + h[3] : sec.s.id;
           if (seen[key]) return; seen[key] = 1;
-          rows.push([parseInt(m.year || "0", 10), sec.s.id, h ? h[1].trim() + " (" + h[2] + ")" : sec.s.title]);
+          if (h) {
+            var a0 = +h[3] * 12 + MON[h[2]], b0 = h[4] ? +h[5] * 12 + MON[h[4]] : nowM;
+            spans.push([a0, b0]);
+            orgs[h[1].split(",")[0].trim()] = 1;
+            rows.push([a0, sec.s.id, h[1].trim() + " (" + h[2] + " " + h[3] + " - " + (h[4] ? h[4] + " " + h[5] : "Present") + ")"]);
+          } else rows.push([0, sec.s.id, sec.s.title]);
         });
         rows.sort(function (a, b) { return b[0] - a[0] || (a[1] < b[1] ? -1 : 1); });
-        return { type: "tracks", section: "Experience", how: "metadata kind", score: 1, lead: "Aditya’s roles, newest first:", lines: rows.map(function (r) { return r[2]; }),
+        spans.sort(function (a, b) { return a[0] - b[0]; });
+        var total = 0, cur = null;                      // union of intervals: overlapping roles are counted once
+        spans.forEach(function (x) { if (!cur || x[0] > cur[1] + 1) { if (cur) total += cur[1] - cur[0] + 1; cur = [x[0], x[1]]; } else cur[1] = Math.max(cur[1], x[1]); });
+        if (cur) total += cur[1] - cur[0] + 1;
+        var yrs = Math.floor(total / 12), mos = total % 12, first = spans.length ? spans[0][0] : 0, MN = Object.keys(MON);
+        var heads = secs.filter(function (sec) { return sec.s.meta && sec.s.meta.headline; }), dom = { fintech: 0, health: 0, ai: 0 };
+        heads.forEach(function (sec) { (sec.s.meta.domains || []).forEach(function (d) { if (dom[d] !== undefined) dom[d]++; }); });
+        var pubs = (byId.get_publications ? byId.get_publications.s.chunks.length : 0);
+        var span = (yrs ? yrs + (yrs === 1 ? " year " : " years ") : "") + (mos ? mos + (mos === 1 ? " month" : " months") : "");
+        return { type: "tracks", section: "By the numbers", how: "dates in the record", score: 1,
+          lead: "About " + span.trim() + " of professional and research experience, across " + rows.length + " roles at " + Object.keys(orgs).length + " organisations since " + MN[first % 12] + " " + Math.floor(first / 12) + " (overlapping roles counted once).",
+          lines: rows.map(function (r) { return r[2]; }).concat([
+            heads.length + " projects and roles with a measured result; " + pubs + " publications.",
+            "Tagged by domain: fintech " + dom.fintech + ", healthtech " + dom.health + ", AI engineer " + dom.ai + " (a project can carry more than one tag)."]),
           links: [{ label: "Full experience", href: "index.html#experience" }, { label: "Book a chat", href: "contact.html" }],
           suggestions: ["Which project fits a fintech role?", "Tell me about his healthcare experience", "How can he help me?"] };
       }
