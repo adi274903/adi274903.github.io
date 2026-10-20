@@ -546,15 +546,15 @@ def case(i):
 HOW_STEPS = [   # (title, lines) for the example question "What did he do at EMMA AI?"
     ("Question", ["What did he do", "at EMMA AI?"]),
     ("Read it", ["tokens: emma, ai", "intent: describe", "typos fixed"]),
-    ("Find section", ["name match: EMMA", "metadata: project", "health \u00b7 AI \u00b7 2025"]),
+    ("Find section", ["match: EMMA", "metadata: project", "health \u00b7 AI \u00b7 2025"]),
     ("Rank lines", None),
-    ("Quote", ["best-matching line,", "numbers in bold,", "+ source line"]),
+    ("Quote", ["best line,", "numbers in bold,", "+ source line"]),
 ]
 
 
 def how_svg(vertical=False):
     """Animated pipeline diagram (SMIL packet + CSS highlight loop). Static for prefers-reduced-motion."""
-    bw, bh, gap = (300, 100, 28) if vertical else (132, 132, 20)
+    bw, bh, gap = (300, 100, 28) if vertical else (142, 132, 16)
     n = len(HOW_STEPS)
     W, H = (330, 24 + n * (bh + gap) - gap + 24) if vertical else (24 + n * (bw + gap) - gap + 24, 190)
     out = []
@@ -569,7 +569,8 @@ def how_svg(vertical=False):
             g.append(f'<text class="hl sm" x="{x + 14}" y="{y + bh - 10}">similarity</text>')
         if lines:
             for k, t in enumerate(lines):
-                g.append(f'<text class="hl" x="{x + 14}" y="{y + 46 + k * 19}">{e(t)}</text>')
+                tl = f' textLength="{bw - 28}" lengthAdjust="spacingAndGlyphs"' if len(t) * 6.9 > bw - 28 else ""   # never wider than the box
+                g.append(f'<text class="hl" x="{x + 14}" y="{y + 46 + k * 19}"{tl}>{e(t)}</text>')
         else:                                   # cosine bars: the winner is the accent colour
             for k, (sc, win) in enumerate(((0.57, True), (0.21, False), (0.11, False))):
                 yy = y + 40 + k * 26

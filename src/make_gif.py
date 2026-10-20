@@ -16,8 +16,8 @@ font = lambda p, n: ImageFont.truetype(p, n * S)
 QUESTION = "What did he do at EMMA AI?"
 ANSWER = "Raised physician-rated accuracy and completeness 25% in a resident podcast platform by rebuilding Gemini and pgvector RAG retrieval over a 20-context corpus, validated by 2 physician surveys and 48 students."
 STEPS = [("01 · QUESTION", ["What did he do", "at EMMA AI?"]), ("02 · READ IT", ["tokens: emma, ai", "intent: describe", "typos fixed"]),
-         ("03 · FIND SECTION", ["name match: EMMA", "metadata: project", "health · AI · 2025"]), ("04 · RANK LINES", None),
-         ("05 · QUOTE", ["best-matching line,", "numbers in bold,", "+ source line"])]
+         ("03 · FIND SECTION", ["match: EMMA", "metadata: project", "health · AI · 2025"]), ("04 · RANK LINES", None),
+         ("05 · QUOTE", ["best line,", "numbers in bold,", "+ source line"])]
 BOX_W, BOX_H, GAP, TOP, X0 = 166, 150, 22, 96, 28
 
 
