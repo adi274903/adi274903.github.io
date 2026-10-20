@@ -282,3 +282,11 @@ details ul{margin-left:58px}
 .co.fb{border-radius:11px}
 :root[data-theme=dark] .co.ink img{filter:invert(1)}
 @media(prefers-color-scheme:dark){:root:not([data-theme=light]) .co.ink img{filter:invert(1)}}
+/* clickable recognition cards */
+.hn{position:relative}
+.hn a.stretch{text-decoration:none;color:var(--ink)}
+.hn a.stretch::after{content:"";position:absolute;inset:0;border-radius:12px}
+.hn.lk{transition:border-color .15s,transform .15s}
+.hn.lk:hover{border-color:var(--acc);transform:translateY(-2px)}
+.hn.lk:hover a.stretch{color:var(--acc);text-decoration:underline;text-underline-offset:4px}
+.hn a.stretch:focus-visible{outline:2px solid var(--acc);outline-offset:4px;border-radius:6px}

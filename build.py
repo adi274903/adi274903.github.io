@@ -372,9 +372,14 @@ def home():
     pubs = "".join(f'<li><a href="{p["url"]}" rel="noopener"><b>{e(p["title"])}</b>'
                    f'<span>{e(p["venue"])}{"" if p["year"] in p["venue"] else " \u00b7 " + e(p["year"])} \u2197</span></a></li>'
                    for p in C.PUBLICATIONS)
+    HONOR_LINKS = {"Kaggle": "https://www.kaggle.com/competitions/11785-hw-2-p-2-face-verification-spring-2025/leaderboard",
+                   "AMIA": "https://workshopamia2025.github.io/AMIA-KDDM-2025"}
+
     def _hon(h):
         t, o, d, w = honor(h)
-        return (f'<li class="hn"><div><b>{e(t)}</b>' + (f'<span class="org">{e(o)}</span>' if o else "") + "</div>"
+        url = next((u for k, u in HONOR_LINKS.items() if k in h), "")
+        title = (f'<a class="ln stretch" href="{url}" target="_blank" rel="noopener">{e(t)} \u2197</a>' if url else e(t))
+        return (f'<li class="hn{" lk" if url else ""}"><div><b>{title}</b>' + (f'<span class="org">{e(o)}</span>' if o else "") + "</div>"
                 + (f"<p>{fmt(d)}</p>" if d else "") + (f'<time class="wh">{e(w)}</time>' if w else "") + "</li>")
     _SEASON = {"winter": 0.0, "spring": 0.25, "summer": 0.5, "fall": 0.75}
     _MONTH = {m: i / 12 for i, m in enumerate("jan feb mar apr may jun jul aug sep oct nov dec".split())}
