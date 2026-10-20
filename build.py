@@ -409,12 +409,15 @@ def shell(title, desc, body, depth_attr="", page="index", extra_js="", fab=True)
 
 def card(en):
     tags = "".join(f"<li>{''.join(ic(s, n) for s, n, in icons_in(t)[:1])}{e(t)}</li>" for t in en["tags"][:4])
-    return (f'<a class="card cs" href="{en["slug"]}" data-tr="{en["tracks"]}">'
+    return (f'<article class="card cs" data-tr="{en["tracks"]}">'
             f'<div class="m"><span class="mono">{e(en["n"])} · {e(en["kicker"])}</span>'
             f'<span class="mono">{e(en["year"])}</span></div>'
             f'<h3>{e(en["title"])}</h3>'
             f'<div><div class="big">{e(en["metric"])}</div><div class="bn">{e(en["metric_note"])}</div></div>'
-            f'{en["chart"]}<ul class="chips">{tags}</ul></a>')
+            f'<div class="more"><div>{en["chart"]}</div></div>'
+            f'<ul class="chips">{tags}</ul>'
+            f'<div class="acts"><button type="button" class="tg" aria-expanded="false">Show numbers</button>'
+            f'<a href="{en["slug"]}">Case study \u2192</a></div></article>')
 
 
 def home():

@@ -78,7 +78,14 @@ h1.name span+span{color:transparent;-webkit-text-stroke:1.4px var(--ink)}
 .card .ln{font-size:15px;color:var(--mut);line-height:1.55}
 .chips{display:flex;flex-wrap:wrap;align-content:flex-start;align-items:flex-start;gap:6px;margin-top:auto}
 .chips li{font:600 10.5px var(--mono);letter-spacing:.06em;border:1px solid var(--line);border-radius:99px;padding:4px 9px;color:var(--mut)}
-@media(min-width:900px){.grid .card:first-child{grid-column:span 2;display:grid;grid-template-columns:1fr 1.15fr;column-gap:32px;row-gap:12px;align-content:center}.grid .card:first-child>*{grid-column:1}.grid .card:first-child>.ch{grid-column:2;grid-row:1/span 4;align-self:center}.grid .card:first-child .chips{margin-top:0}}
+.card .more{display:grid;grid-template-rows:0fr;transition:grid-template-rows .3s}
+.card .more>div{overflow:hidden;min-height:0}
+.card.open .more{grid-template-rows:1fr}
+.card:not(.open) .more .ch{display:none}
+.card .acts{display:flex;justify-content:space-between;align-items:center;gap:10px;font:600 12px var(--mono);letter-spacing:.04em}
+.card .tg{background:none;border:1px solid var(--line);border-radius:99px;color:var(--acc);padding:6px 12px;font:inherit;cursor:pointer}
+.card .tg:hover{border-color:var(--acc)}
+.card .acts a{color:var(--mut)}.card .acts a:hover{color:var(--acc)}
 /* charts */
 .ch{width:100%;height:auto;overflow:visible}
 .ch text{font-family:var(--mono);font-size:12px;fill:var(--mut)}

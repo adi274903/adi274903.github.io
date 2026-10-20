@@ -18,6 +18,7 @@ function track(k){
 $("[data-track]").forEach(function(b){b.onclick=function(){history.replaceState(null,"","#"+b.dataset.track);track(b.dataset.track)}});
 track(location.hash.slice(1)||"all");
 addEventListener("hashchange",function(){track(location.hash.slice(1))});
+$(".card .tg").forEach(function(b){var c=b.closest(".card");c.onclick=function(ev){if(ev.target.closest("a"))return;if(ev.target!==b)b.click()};c.style.cursor="pointer";b.onclick=function(ev){ev.stopPropagation();var o=c.classList.toggle("open");b.setAttribute("aria-expanded",o);b.textContent=o?"Hide numbers":"Show numbers";$(".ch",c).forEach(function(x){x.classList.add("in")})}});
 var cs=$(".ch"),tk=0;
 function chk(){tk=0;var vh=innerHeight;cs=cs.filter(function(e){var r=e.getBoundingClientRect();if(r.top<vh*.92&&r.bottom>0){e.classList.add("in");return false}return true})}
 function qs(){if(!tk)tk=requestAnimationFrame(chk)}
