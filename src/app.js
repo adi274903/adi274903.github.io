@@ -19,7 +19,7 @@ $("[data-track]").forEach(function(b){b.onclick=function(){history.replaceState(
 track(location.hash.slice(1)||"all");
 addEventListener("hashchange",function(){track(location.hash.slice(1))});
 var fab=d.getElementById("chat-open");
-if(fab)fab.onclick=function(){if(window.openChat)return window.openChat();var s=d.createElement("script");s.src="chat.js";s.onload=function(){window.openChat()};d.head.appendChild(s)};
+if(fab)fab.onclick=function(){if(window.openChat)return window.openChat();var s=d.createElement("script");s.src="chat.js?v="+(document.querySelector("script[src^=\"app.js\"]").src.split("v=")[1]||"");s.onload=function(){window.openChat()};d.head.appendChild(s)};
 var cs=$(".ch"),tk=0;
 function chk(){tk=0;var vh=innerHeight;cs=cs.filter(function(e){var r=e.getBoundingClientRect();if(r.top<vh*.92&&r.bottom>0){e.classList.add("in");return false}return true})}
 function qs(){if(!tk)tk=requestAnimationFrame(chk)}

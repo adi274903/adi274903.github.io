@@ -24,6 +24,8 @@ import webcontent as S  # noqa: E402
 
 STATIC = "--static" in sys.argv           # published build: no chat button (Pages cannot run the model)
 DIST = HERE / ("docs" if STATIC else "dist")
+import hashlib
+VER = hashlib.md5(b"".join((HERE / "src" / f).read_bytes() for f in ("styles.css", "app.js", "chat.js"))).hexdigest()[:8]
 NAME, ROLE = C.NAME, C.ROLE
 
 # ------------------------------------------------------------------ authored copy
@@ -88,7 +90,7 @@ def icons_in(text):
 
 
 def ic(slug, name):
-    return (f'<span class="lg-i" title="{e(name)}"><svg class="ic" aria-hidden="true">'
+    return (f'<span class="lg-i" title="{e(name)}"><svg class="ic" width="16" height="16" aria-hidden="true">'
             f'<use href="icons.svg#i-{slug}"/></svg></span>')
 
 
@@ -238,7 +240,7 @@ def shell(title, desc, body, depth_attr="", page="index"):
 <title>{e(title)}</title><meta name="description" content="{e(desc)}">
 <meta property="og:title" content="{e(title)}"><meta property="og:description" content="{e(desc)}">
 <meta name="color-scheme" content="light dark"><meta name="theme-color" content="#0b0d12">
-<link rel="icon" href="{ICON}"><link rel="stylesheet" href="styles.css">
+<link rel="icon" href="{ICON}"><link rel="stylesheet" href="styles.css?v={VER}">
 <script>try{{var t=localStorage.getItem("th");if(t)document.documentElement.dataset.theme=t}}catch(e){{}}</script>
 </head><body>
 <header class="top"><div class="wrap"><a class="wm" href="index.html"><i></i>{e(NAME)}</a>
@@ -251,7 +253,7 @@ def shell(title, desc, body, depth_attr="", page="index"):
 <p>{e(NAME)} · {e(ROLE)} · {e(C.CONTACT_LINE)}</p>
 <p>Logos are trademarks of their owners; icons from Simple Icons (CC0).</p>
 </div></footer>
-{CHAT_BTN}<script src="app.js" defer></script></body></html>"""
+{CHAT_BTN}<script src="app.js?v={VER}" defer></script></body></html>"""
 
 
 def card(en):
