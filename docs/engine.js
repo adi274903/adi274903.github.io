@@ -47,11 +47,26 @@
 
   var ROLEFIT = /\b(fit|fits|fitting|suit|suits|suitable|relevant|best for|good for|right for|which (project|work|experience)|what (project|work|experience))\b/i;
   var LISTQ = /\b(which|any|list|show|every|all)\b.{0,40}\b(projects?|work|experience|roles?|research)\b|\bwhat (projects?|work|experience)\b|\b(fit|fits|relevant|suit|suits|involve|involves|involving|related to|focused on|touch|touches)\b/i;
+  var HELP = /\b(how (can|could|would) (he|aditya) (help|fit|contribute|add)|what can (he|aditya) do for|why (hire|should (i|we))|help me|can (he|aditya) help|value (he|aditya) (brings|adds))\b/i;
+  var EXPER = /\b(experience|experiences|background|career|work history|track record|what (has|have) (he|aditya) done|where has (he|aditya) worked|resume|cv)\b|\b(roles?|positions?|jobs?)\b.{0,25}\b(held|had|has|have)\b/i;
+  var SUPER = /\b(strongest|best|proudest|most impressive|top|favou?rite|flagship|biggest)\b.{0,25}\b(project|work|result|achievement|win)\b/i;
+  var ALLPROJ = /\b(what|which|list|show|give me)\b.{0,25}\b(projects?|work)\b/i;
+  var YESNO = /\b(has|have|does|did|is|can) (he|aditya)\b.{0,50}\b(used|worked|built|done|experience|know|with|fine-?tuned|published|led)\b|\bany experience\b|\bexperience (with|in)\b/i;
+  var TYPOS = { waht: "what", whta: "what", hwo: "how", hsi: "his", teh: "the", adn: "and", abotu: "about", whn: "when", wat: "what", knwo: "know", hs: "has" };
   var NOLIST = {papers: 1, honors: 1, education: 1, skills: 1, overview: 1};
 
   function strip(chunk) {              // drop the "Org, Role (dates): " prefix so the answer starts at the substance
     var m = chunk.match(/^[^:]{0,140}?\):\s+/);
     return m ? chunk.slice(m[0].length) : chunk;
+  }
+
+  function near(a, b) {                 // edit distance <= 1 (substitution, insertion, deletion, adjacent swap)
+    if (a === b) return true;
+    var la = a.length, lb = b.length;
+    if (Math.abs(la - lb) > 1) return false;
+    var i = 0; while (i < la && i < lb && a[i] === b[i]) i++;
+    if (la === lb) { if (a.slice(i + 1) === b.slice(i + 1)) return true; return a[i] === b[i + 1] && a[i + 1] === b[i] && a.slice(i + 2) === b.slice(i + 2); }
+    return la > lb ? a.slice(i + 1) === b.slice(i) : b.slice(i + 1) === a.slice(i);
   }
 
   function build(data) {
@@ -86,27 +101,50 @@
       sec.aliasRx = sec.s.aliases.map(function (a) { var rx = new RegExp("(^|[^a-z0-9])" + esc(a.toLowerCase()) + "s?($|[^a-z0-9])"); rx.w = 1 + 0.5 * (a.trim().split(/\s+/).length - 1); return rx; });
     });
     var byId = {}; secs.forEach(function (sec) { byId[sec.s.id] = sec; });
-    var FAC = data.facets || { domain: {}, topic: {} }, facetRx = { domain: {}, topic: {} };
-    ["domain", "topic"].forEach(function (kind) {
+    // typo correction targets a CONTROLLED keyword list only: project titles, tool and skill names, facet words and
+    // intent words. Never the free text of the lines, or "president" would become "resident" and "moving" become "mowing".
+    var rawVocab = {};
+    var INTENT_WORDS = "experience background career projects project education degree university research relocation relocate published papers skills contact resume startup internship interview summary overview achievements awards".split(" ");
+    var kw = INTENT_WORDS.slice();
+    data.sections.forEach(function (sec) {          // distinctive names only: titles, tools, skill names; not ordinary-word aliases like "resident"
+      kw = kw.concat([sec.title, (sec.meta || {}).project || ""], (sec.meta || {}).tech || []);
+      if (sec.id === "get_skills") kw = kw.concat(sec.aliases);
+    });
+    ["domain", "topic", "kind"].forEach(function (g) { Object.keys((data.facets || {})[g] || {}).forEach(function (k) { kw = kw.concat([k], data.facets[g][k]); }); });
+    (kw.join(" ").toLowerCase().match(/[a-z]{5,}/g) || []).forEach(function (w) { rawVocab[w] = 1; });
+    var rawList = Object.keys(rawVocab).sort();
+    function fixTypos(q) {                // "experiance" -> "experience"; only words the record never uses are touched
+      q = q.replace(/\b[A-Za-z]{2,4}\b/g, function (w) { return TYPOS[w.toLowerCase()] || w; });
+      return q.replace(/[A-Za-z]{5,}/g, function (w) {
+        var lw = w.toLowerCase();
+        if (rawVocab[lw] || STOP.has(lw)) return w;
+        for (var i = 0; i < rawList.length; i++) if (near(lw, rawList[i])) return rawList[i];
+        return w;
+      });
+    }
+    var FAC = data.facets || { domain: {}, topic: {}, kind: {} }, facetRx = { domain: {}, topic: {}, kind: {} };
+    FAC.kind = FAC.kind || {};
+    ["domain", "topic", "kind"].forEach(function (kind) {
       Object.keys(FAC[kind]).forEach(function (key) {
         facetRx[kind][key] = new RegExp("(^|[^a-z0-9])(" + FAC[kind][key].concat([key]).map(esc).join("|") + ")s?($|[^a-z0-9])", "i");
       });
     });
     var DOMAIN_LABEL = { fintech: "Fintech", health: "Healthtech", ai: "AI engineer" };
     function facets(q) {
-      var f = { domain: [], topic: [] };
-      ["domain", "topic"].forEach(function (kind) { Object.keys(facetRx[kind]).forEach(function (k) { if (facetRx[kind][k].test(q)) f[kind].push(k); }); });
+      var f = { domain: [], topic: [], kind: [] };
+      ["domain", "topic", "kind"].forEach(function (kind) { Object.keys(facetRx[kind]).forEach(function (k) { if (facetRx[kind][k].test(q)) f[kind].push(k); }); });
       return f;
     }
     function listByFacets(q, f, qv) {      // sections whose metadata matches every detected facet group, best cosine first
       var rows = secs.filter(function (sec) {
         var m = sec.s.meta || {};
-        if (NOLIST[m.kind]) return false;
+        if (NOLIST[m.kind] && !f.kind.length) return false;
         var okD = !f.domain.length || f.domain.some(function (d) { return (m.domains || []).indexOf(d) > -1; });
         var okT = !f.topic.length || f.topic.some(function (t) { return (m.topics || []).indexOf(t) > -1; });
-        return okD && okT;
+        var okK = !f.kind.length || f.kind.indexOf(m.kind) > -1;
+        return okD && okT && okK;
       }).map(function (sec) { return [cos(qv, sec.sv), sec]; }).sort(function (a, b) { return b[0] - a[0] || (a[1].s.id < b[1].s.id ? -1 : 1); }).slice(0, 10);
-      var labels = f.domain.map(function (d) { return DOMAIN_LABEL[d] || d; }).concat(f.topic);
+      var labels = f.domain.map(function (d) { return DOMAIN_LABEL[d] || d; }).concat(f.topic, f.kind);
       return {
         type: "tracks", section: "Metadata match: " + labels.join(" + "), how: "metadata filter + cosine", score: 1,
         lead: rows.length ? "Projects and roles tagged " + labels.join(" and ") + ":" : "I have nothing tagged " + labels.join(" and ") + ".",
@@ -132,17 +170,52 @@
       return null;
     }
 
-    function answer(q, state) {
+    function answerOne(q, state) {
       state = state || {};
-      q = (q || "").trim();
+      q = fixTypos((q || "").trim());
       if (!q) return null;
       if (GREET.test(q) && q.length < 40) return { type: "greeting", lines: [data.greeting], suggestions: data.starters };
       if (OFFTOPIC.test(q)) return { type: "decline", lines: [data.decline], suggestions: data.starters, how: "off-topic rule" };
+
+      var fq0 = facets(q), noFacet = !fq0.domain.length && !fq0.topic.length && !(fq0.kind || []).length;
+      var namedAny = secs.some(function (sec) { return sec.aliasRx.some(function (rx) { return rx.test(q.toLowerCase()); }); });
+      if (HELP.test(q) && data.tracks) {
+        var T = data.tracks;
+        return { type: "tracks", section: "How Aditya can help", how: "role tags", score: 1,
+          lead: "Here is where Aditya can help, by kind of role:",
+          lines: ["fintech", "health", "ai"].map(function (k) { return T[k].label + ": " + T[k].items.slice(0, 2).map(function (x) { return x.title + " (" + x.metric + ")"; }).join("; "); }),
+          links: [{ label: "Book a chat", href: "contact.html" }, { label: "See all work", href: "index.html#work" }],
+          suggestions: ["Which project fits a fintech role?", "Tell me about his healthcare experience", "What is his experience?"] };
+      }
+      if (SUPER.test(q) || (ALLPROJ.test(q) && noFacet && !namedAny && !ROLEFIT.test(q))) {
+        var hl = secs.filter(function (sec) { return sec.s.meta && sec.s.meta.headline; });
+        return { type: "tracks", section: "Projects", how: "headline results", score: 1,
+          lead: SUPER.test(q) ? "I would let the numbers speak. Here are the headline results:" : "Here are the projects with their headline results:",
+          lines: hl.map(function (sec) { var m = sec.s.meta; return m.project + ": " + m.headline.metric + " (" + m.headline.note + ")"; }),
+          links: hl.map(function (sec) { return { label: sec.s.meta.project, href: sec.s.meta.headline.href }; }).slice(0, 8),
+          suggestions: ["Which project fits a fintech role?", "Tell me about his healthcare experience", "What is his experience?"] };
+      }
+      if (EXPER.test(q) && noFacet && !namedAny) {
+        var seen = {}, rows = [];
+        secs.forEach(function (sec) {
+          var m = sec.s.meta || {};
+          if (m.kind !== "role" && m.kind !== "research") return;
+          var h = sec.s.chunks[0].match(/^([^(]+?)\s*\(([^)]+)\):/);
+          var key = h ? h[1] + h[2] : sec.s.id;
+          if (seen[key]) return; seen[key] = 1;
+          rows.push([parseInt(m.year || "0", 10), sec.s.id, h ? h[1].trim() + " (" + h[2] + ")" : sec.s.title]);
+        });
+        rows.sort(function (a, b) { return b[0] - a[0] || (a[1] < b[1] ? -1 : 1); });
+        return { type: "tracks", section: "Experience", how: "metadata kind", score: 1, lead: "Aditya’s roles, newest first:", lines: rows.map(function (r) { return r[2]; }),
+          links: [{ label: "Full experience", href: "index.html#experience" }, { label: "Book a chat", href: "contact.html" }],
+          suggestions: ["Which project fits a fintech role?", "Tell me about his healthcare experience", "How can he help me?"] };
+      }
       if (CONTACT.test(q)) return { type: "contact", lead: "Here is how to reach Aditya.", lines: [data.contact.reply], links: data.contact.links, suggestions: data.starters, section: "Contact", score: 1, how: "keyword" };
       if (THANKS.test(q) && q.length < 40) return { type: "thanks", lines: ["Happy to help. Ask me about any project, result or role."], suggestions: data.starters };
-      var qv = vec(expand(tokens(q)), idf, true), fq = facets(q), hasFacet = fq.domain.length || fq.topic.length;
+      var qv = vec(expand(tokens(q)), idf, true), fq = facets(q), hasFacet = fq.domain.length || fq.topic.length || fq.kind.length;
       var named = secs.some(function (sec) { return sec.aliasRx.some(function (rx) { return rx.test(q.toLowerCase()); }); });
-      if (hasFacet && (LISTQ.test(q) || !named)) return listByFacets(q, fq, qv);
+      var skillNamed = secs.some(function (sec) { return sec.s.id === "get_skills" && sec.aliasRx.some(function (rx) { return rx.test(q.toLowerCase()); }); });
+      if (hasFacet && !skillNamed && (LISTQ.test(q) || YESNO.test(q) || !named)) return listByFacets(q, fq, qv);
       if (ROLEFIT.test(q) && !named) {
         return { type: "tracks", section: "Role fit", how: "metadata", lead: "Which kind of role do you have in mind?", lines: ["Fintech, healthtech, or AI engineer. I will list the projects tagged for it."], suggestions: ["Which project fits a fintech role?", "Which projects fit healthtech?", "Which projects involve retrieval?"], score: 1 };
       }
@@ -173,6 +246,16 @@
         out.source = s.chunks[top];
       }
       return out;
+    }
+    function answer(q, state) {                       // one or several questions in one message
+      state = state || {};
+      var parts = (q || "").split(/(?<=[?!.])\s+/).map(function (p) { return p.trim(); }).filter(function (p) { return p.replace(/[^a-z]/gi, "").length >= 3; });
+      if (parts.length > 1) {
+        var rs = parts.slice(0, 3).map(function (p) { var r = answerOne(p, state); if (r && r.sectionId) state.last = r.sectionId; return r; }).filter(Boolean);
+        if (rs.length > 1) return { type: "multi", parts: rs };
+        if (rs.length === 1) return rs[0];
+      }
+      return answerOne(q, state);
     }
     return { answer: answer, sections: data.sections.map(function (x) { return x.id; }), tokens: tokens };
   }

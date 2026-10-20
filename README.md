@@ -11,12 +11,16 @@ per project, and an **Ask page** (`ask.html`) that answers questions about the r
     build.py     renders the site from the portfolio content model; `--static` writes docs/
 
 ## Ask page: deterministic, model-free
+
+![How the Ask page works](docs/how-it-works.gif)
+
 The record is chunked into fifteen sections of short quoted lines (`ask-data.json`). In the browser, `engine.js`
 builds TF-IDF vectors for every line and section, turns a question into a vector, picks the section (name matches
 plus cosine similarity), then the best lines inside it, and writes the reply from fixed templates. Off-topic and
 coding questions are refused. Same question, same answer.
 
-    node src/test_all.js        # 51-question regression suite (29 dev + 22 written afterwards)
+    node src/test_all.js        # 72-question regression suite (dev, second, facet, phrasing, role and intent sets)
+    node src/test_recruiter.js  # 38 recruiter-style questions (first run was blind: 27 of 38)
 
 The content model and its ground-truth source are kept private, so the site cannot be rebuilt from this repository
 alone; `docs/` is the deliverable.

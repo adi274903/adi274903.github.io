@@ -362,3 +362,21 @@ details ul{margin-left:58px}
 .hwp li b{color:var(--ink)}
 .askp:not(.xray) .mt span,.askp:not(.xray) .tg2{display:none}
 .askp:not(.xray) .mt{margin-bottom:6px}
+/* how-it-works diagram */
+.hwd{margin-bottom:18px;overflow:hidden}
+.hws{width:100%;height:auto}
+.hws .hb{fill:var(--bg);stroke:var(--line);stroke-width:1.2}
+.hws .ht{font:600 10.5px var(--mono);letter-spacing:.1em;fill:var(--acc)}
+.hws .hl{font:500 12.5px var(--sans);fill:var(--ink)}
+.hws .hl.sm{font:600 11px var(--mono);fill:var(--mut)}
+.hws .ha{stroke:var(--mut);stroke-width:1.6;fill:none}
+.hws .hah{fill:var(--mut)}
+.hws .hp{fill:var(--hot)}
+.hws .hbt{fill:var(--panel);stroke:var(--line);stroke-width:1}
+.hws .hbar{fill:var(--mut);opacity:.55}
+.hws .hbar.win{fill:var(--acc);opacity:1}
+@media(prefers-reduced-motion:no-preference){.hws .hs{opacity:.35;animation:hlt 6s ease-in-out infinite}
+ @keyframes hlt{0%{opacity:.35}4%{opacity:1}20%{opacity:1}26%{opacity:.35}100%{opacity:.35}}}
+@media(prefers-reduced-motion:reduce){.hws animateMotion{display:none}}
+@media(max-width:900px){.hwd .dw{display:none}.hwd .mw{display:block}}
+.hwd .mw{max-width:420px;margin:0 auto}

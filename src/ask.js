@@ -58,8 +58,7 @@
     busy = true; input.value = "";
     say("u", el("p", "", q));
     var r = eng.answer(q, state);
-    var m = say("b", render(r));
-    if (r.sectionId) state.last = r.sectionId;
+    (r.type === "multi" ? r.parts : [r]).forEach(function (x) { say("b", render(x)); if (x.sectionId) state.last = x.sectionId; });
     busy = false; scroll(); input.focus();
   }
   form.onsubmit = function (e) { e.preventDefault(); ask(input.value); };

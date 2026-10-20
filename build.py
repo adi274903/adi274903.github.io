@@ -213,7 +213,8 @@ FACETS = {   # question words -> facet; authored routing vocabulary, never shown
     "domain": {"fintech": ["fintech", "finance", "financial", "bank", "banking", "credit", "fraud", "payments", "lending", "loan"],
                "health": ["health", "healthcare", "healthtech", "clinical", "medical", "hospital", "physician", "patient", "pricing transparency"],
                "ai": ["ai engineer", "ml engineer", "machine learning engineer", "genai", "llm", "ai role"]},
-    "topic": {"Retrieval & RAG": ["retrieval", "rag", "vector search", "search"], "Fine-tuning & training": ["fine-tuning", "finetuning", "fine tuning", "training", "pretraining", "dora"],
+    "kind": {"research": ["research", "researcher", "researchers"]},
+    "topic": {"Retrieval & RAG": ["retrieval", "rag", "vector search", "search", "vector database", "vector databases", "vector store", "vector db", "embeddings"], "Fine-tuning & training": ["fine-tuning", "finetuning", "fine tuning", "fine-tuned", "fine tuned", "finetuned", "tuned", "training", "pretraining", "dora"],
               "Evaluation & benchmarks": ["evaluation", "evaluating", "benchmark", "benchmarks", "metrics"], "Agents & tool use": ["agent", "agents", "agentic", "mcp", "tool use"],
               "Data engineering": ["data engineering", "pipeline", "pipelines", "sql", "spark", "etl"], "Classical ML & NLP": ["nlp", "classical ml", "xgboost", "machine learning model"]}}
 
@@ -542,6 +543,62 @@ def case(i):
     return shell(f'{en["title"]} — {NAME}', en["metric"] + " — " + en["metric_note"], body)
 
 
+HOW_STEPS = [   # (title, lines) for the example question "What did he do at EMMA AI?"
+    ("Question", ["What did he do", "at EMMA AI?"]),
+    ("Read it", ["tokens: emma, ai", "intent: describe", "typos fixed"]),
+    ("Find section", ["name match: EMMA", "metadata: project", "health \u00b7 AI \u00b7 2025"]),
+    ("Rank lines", None),
+    ("Quote", ["best-matching line,", "numbers in bold,", "+ source line"]),
+]
+
+
+def how_svg(vertical=False):
+    """Animated pipeline diagram (SMIL packet + CSS highlight loop). Static for prefers-reduced-motion."""
+    bw, bh, gap = (300, 84, 34) if vertical else (132, 132, 20)
+    n = len(HOW_STEPS)
+    W, H = (330, 24 + n * (bh + gap) - gap + 24) if vertical else (24 + n * (bw + gap) - gap + 24, 190)
+    out = []
+    pos = []
+    for i, (title, lines) in enumerate(HOW_STEPS):
+        x, y = (15, 24 + i * (bh + gap)) if vertical else (24 + i * (bw + gap), 28)
+        pos.append((x, y))
+        g = [f'<g class="hs" style="animation-delay:{i * 1.2}s">',
+             f'<rect class="hb" x="{x}" y="{y}" width="{bw}" height="{bh}" rx="14"/>',
+             f'<text class="ht" x="{x + 14}" y="{y + 22}">{i + 1:02d} \u00b7 {e(title.upper())}</text>']
+        if not lines:
+            g.append(f'<text class="hl sm" x="{x + 14}" y="{y + bh - 10}">similarity</text>')
+        if lines:
+            for k, t in enumerate(lines):
+                g.append(f'<text class="hl" x="{x + 14}" y="{y + 46 + k * 19}">{e(t)}</text>')
+        else:                                   # cosine bars: the winner is the accent colour
+            for k, (sc, win) in enumerate(((0.57, True), (0.21, False), (0.11, False))):
+                yy = y + 40 + k * 26
+                g.append(f'<rect class="hbt" x="{x + 14}" y="{yy}" width="{bw - 28}" height="10" rx="5"/>'
+                         f'<rect class="hbar{" win" if win else ""}" x="{x + 14}" y="{yy}" width="{(bw - 28) * sc / 0.62:.1f}" height="10" rx="5"/>'
+                         )
+        g.append("</g>")
+        out.append("".join(g))
+    arrows = []
+    for i in range(n - 1):
+        (x0, y0), (x1, y1) = pos[i], pos[i + 1]
+        if vertical:
+            arrows.append(f'<path class="ha" d="M{x0 + bw / 2} {y0 + bh + 4} L{x1 + bw / 2} {y1 - 6}" marker-end="url(#ah)"/>')
+        else:
+            arrows.append(f'<path class="ha" d="M{x0 + bw + 3} {y0 + bh / 2} L{x1 - 5} {y1 + bh / 2}" marker-end="url(#ah)"/>')
+    if vertical:
+        tx = 7
+        path = f"M{tx} {pos[0][1] + bh / 2} L{tx} {pos[-1][1] + bh / 2}"
+        track = f'<path class="ha" d="{path}"/>'
+    else:
+        ty = pos[0][1] + bh + 16
+        path = f"M{pos[0][0] + bw / 2} {ty} L{pos[-1][0] + bw / 2} {ty}"
+        track = f'<path class="ha" d="{path}"/>'
+    packet = (f'<circle class="hp" r="6"><animateMotion dur="6s" repeatCount="indefinite" path="{path}" keyTimes="0;1" calcMode="linear"/></circle>')
+    defs = '<defs><marker id="ah" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L8 4 L0 8 z" class="hah"/></marker></defs>'
+    label = "How the Ask page works: question, read it, find the section, rank the lines, quote the best match"
+    return f'<svg class="hws" viewBox="0 0 {W} {H}" role="img" aria-label="{label}">{defs}{"".join(arrows)}{track}{"".join(out)}{packet}</svg>'
+
+
 def page_ask():
     data = ask_data()
     n_sec = len(data["sections"]); n_lines = sum(len(s["chunks"]) for s in data["sections"])
@@ -551,11 +608,12 @@ def page_ask():
 <p class="lede" style="max-width:60ch">Ask about my projects, results, roles or papers, or which of my work fits a fintech, healthtech or AI engineering role.</p></div></section>
 <section style="padding-top:0;border:0"><div class="wrap askn">
 <div class="hwbar"><button class="hwb" id="hwb" type="button" aria-expanded="false" aria-controls="hwp">How it works <i aria-hidden="true">\u25be</i></button></div>
-<div class="hwp" id="hwp" hidden><ol>
+<div class="hwp" id="hwp" hidden><div class="hwd" aria-hidden="false"><div class="dw">{how_svg(False)}</div><div class="mw">{how_svg(True)}</div></div>
+<ol>
 <li><b>Chunk.</b> My record is cut into {words_of(n_sec)} sections, one per project, role or topic, split into {words_of(n_lines)} short lines. Each section carries metadata: project, organisation, year, domain, topics and tools.</li>
 <li><b>Match.</b> No AI model runs here. Each question and each line becomes a TF-IDF vector; names such as EMMA or Tata pick the section, metadata filters pick projects by topic or role, and cosine similarity picks the best lines.</li>
 <li><b>Quote.</b> A fixed template writes the reply around those lines. Same question, same answer, every time.</li></ol>
-<p class="cap">It refuses anything outside my record, such as coding help or general questions. It was checked on fifty-six questions I wrote; every set was used to tune it, so treat that as a regression check, not a blind test. With this panel open, each answer also shows its similarity score and metadata tags.</p></div>
+<p class="cap">It refuses anything outside my record, such as coding help or general questions. It was checked on fifty-six questions I wrote; every set was used to tune it, so treat that as a regression check, not a blind test. With this panel open, each answer also shows its similarity score and metadata tags. <a class="ln" href="how-it-works.gif" download>Download this diagram as a GIF</a>.</p></div>
 <div class="askp" id="askp"><div class="thread" id="thread" aria-live="polite"></div>
 <div class="starts" id="starts" aria-label="Suggested questions"></div>
 <form id="askf" class="askf"><input id="askq" type="text" maxlength="300" autocomplete="off" placeholder="Ask about EMMA AI, Med-Qwen, Value Global, fintech work\u2026" aria-label="Your question"><button type="submit">Ask</button></form></div>
@@ -601,6 +659,7 @@ def build():
     import json
     (DIST / "ask-data.json").write_text(json.dumps(ask_data(), ensure_ascii=False, separators=(",", ":")))
     (DIST / "engine.js").write_text((HERE / "src/engine.js").read_text())
+    (DIST / "how-it-works.gif").write_bytes((HERE / "src/assets/how-it-works.gif").read_bytes()) if (HERE / "src/assets/how-it-works.gif").exists() else None
     (DIST / "icons.svg").write_text((HERE / "src/assets/icons.svg").read_text())
     (DIST / "me.webp").write_bytes((HERE / "src/assets/me.webp").read_bytes())
     (DIST / "app.js").write_text((HERE / "src/app.js").read_text())

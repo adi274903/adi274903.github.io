@@ -5,15 +5,16 @@ const grab = f => eval(fs.readFileSync(path.join(__dirname, f), "utf8").match(/c
 const roles = [["Which project fits a fintech role?", "tracks", "Credit-bureau"], ["Which projects are relevant for healthtech?", "tracks", "Med-Qwen"], ["What fits an AI engineer role?", "tracks", "Value Global"], ["Which project suits a banking job?", "tracks", "Credit-bureau"], ["Which project fits a role?", "tracks", "Which kind of role"]];
 const facetq = [["Which projects involve retrieval?", "tracks", "Value Global"], ["Which work involves fine-tuning?", "tracks", "Med-Qwen"], ["Any fraud or credit work?", "tracks", "Credit-bureau"], ["Which projects mix healthcare and evaluation?", "tracks", "Med-Qwen|NIST"], ["Show me agent projects for fintech", "tracks", "Value Global|Patient-facing"]];
 const phrasing = [["tell me about his healthcare experience?", "tracks", "EMMA"], ["What is his fintech background?", "tracks", "Tata"], ["clinical work he has done", "tracks", "Med-Qwen"], ["tell me about his experience with retrieval", "tracks", "EMMA"], ["anything about banking", "tracks", "Jocata"]];
-const sets = { phrasing5: phrasing, facets5: facetq, roles5: roles, dev29: grab("test_engine.js"), second22: grab("test_heldout.js") };
+const intents = [["So how can he help me? whats hsi experience?", "multi", "Fintech|Value Global"], ["how can he help me", "tracks", "Fintech"], ["whats his experience?", "tracks", "Value Global"], ["what is hsi experiance", "tracks", "Tata Capital"], ["tell me about tata capitl", "get_tata_capital", "credit"], ["why should we hire him?", "tracks", "Healthtech"]];
+const sets = { intents6: intents, phrasing5: phrasing, facets5: facetq, roles5: roles, dev29: grab("test_engine.js"), second22: grab("test_heldout.js") };
 const DATA = JSON.parse(fs.readFileSync(path.join(__dirname, "..", process.argv[2] || "dist", "ask-data.json"), "utf8")); const eng = E.build(DATA);
 let ok = 0, n = 0; const miss = [], per = {};
 for (const [name, T] of Object.entries(sets)) {
   let k = 0;
   for (const [q, want, must] of T) {
     const r = eng.answer(q, {});
-    const got = r.type === "decline" ? "decline" : r.type === "contact" ? "Contact" : r.type === "tracks" ? "tracks" : r.sectionId;
-    const text = [r.lead || "", ...(r.lines || [])].join(" ") + " " + (r.source || "");
+    const got = r.type === "decline" ? "decline" : r.type === "contact" ? "Contact" : r.type === "tracks" ? "tracks" : r.type === "multi" ? "multi" : r.sectionId;
+    const all = r.type === "multi" ? r.parts : [r]; const text = all.map(x => [x.lead || "", ...(x.lines || []), ...(x.links || []).map(l => l.label)].join(" ") + " " + (x.source || "")).join(" ");
     const a = want.split("|").includes(got), b = must.split("|").some(m => text.toLowerCase().includes(m.toLowerCase()));
     n++; if (a && b) { ok++; k++; } else miss.push([name, q, "want " + want, "got " + got, a ? "" : "WRONG SECTION", b ? "" : "FACT MISSING"]);
   }
