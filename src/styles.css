@@ -332,3 +332,16 @@ details ul{margin-left:58px}
 .src summary{display:block;grid-template-columns:none}
 .src summary::after{display:none}
 .src{padding:10px 0 0}
+/* contact form */
+.cfw{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:clamp(20px,3vw,32px)}
+.fr{display:grid;gap:6px;margin-bottom:16px}
+.fr label{font:600 11px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--mut)}
+.fr input,.fr textarea{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:13px 14px;color:var(--ink);font:inherit;font-size:16px}
+.fr textarea{resize:vertical;min-height:150px}
+.fr input:focus,.fr textarea:focus{outline:2px solid var(--acc);outline-offset:1px}
+.cmsg{min-height:1.4em;margin-top:12px;font-size:14.5px}
+.cmsg.bad{color:var(--hot)}
+.cmsg.ok{color:var(--mut)}
+.cfw button[disabled]{opacity:.6;cursor:wait}
+.cdone h2{margin-bottom:10px}
+.cdone:focus{outline:none}

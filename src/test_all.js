@@ -2,20 +2,26 @@
 // Note: both sets have now been used to fix the engine, so this is a regression suite, not a blind test.
 const fs = require("fs"), path = require("path"), E = require("./engine.js");
 const grab = f => eval(fs.readFileSync(path.join(__dirname, f), "utf8").match(/const T = (\[[\s\S]*?\n\]);/)[1]);
-const sets = { dev29: grab("test_engine.js"), second22: grab("test_heldout.js") };
-const eng = E.build(JSON.parse(fs.readFileSync(path.join(__dirname, "..", process.argv[2] || "dist", "ask-data.json"), "utf8")));
+const roles = [["Which project fits a fintech role?", "tracks", "Credit-bureau"], ["Which projects are relevant for healthtech?", "tracks", "Med-Qwen"], ["What fits an AI engineer role?", "tracks", "Chemical safety"], ["Which project suits a banking job?", "tracks", "Credit-bureau"], ["Which project fits a role?", "tracks", "Which kind of role"]];
+const sets = { roles5: roles, dev29: grab("test_engine.js"), second22: grab("test_heldout.js") };
+const DATA = JSON.parse(fs.readFileSync(path.join(__dirname, "..", process.argv[2] || "dist", "ask-data.json"), "utf8")); const eng = E.build(DATA);
 let ok = 0, n = 0; const miss = [], per = {};
 for (const [name, T] of Object.entries(sets)) {
   let k = 0;
   for (const [q, want, must] of T) {
     const r = eng.answer(q, {});
-    const got = r.type === "decline" ? "decline" : r.type === "contact" ? "Contact" : r.sectionId;
+    const got = r.type === "decline" ? "decline" : r.type === "contact" ? "Contact" : r.type === "tracks" ? "tracks" : r.sectionId;
     const text = [r.lead || "", ...(r.lines || [])].join(" ") + " " + (r.source || "");
     const a = want.split("|").includes(got), b = must.split("|").some(m => text.toLowerCase().includes(m.toLowerCase()));
     n++; if (a && b) { ok++; k++; } else miss.push([name, q, "want " + want, "got " + got, a ? "" : "WRONG SECTION", b ? "" : "FACT MISSING"]);
   }
   per[name] = k + "/" + T.length;
 }
+// every suggested question on the page must be answerable (never a decline)
+let starterMiss = []; const asks = [].concat(eng_data_starters(), eng_data_asks());
+function eng_data_starters() { return DATA.starters; } function eng_data_asks() { return [].concat.apply([], DATA.sections.map(s => s.asks)); }
+asks.forEach(q => { if (eng.answer(q, {}).type === "decline") starterMiss.push(q); });
+let askWrong = []; DATA.sections.forEach(s => s.asks.forEach(q => { const r = eng.answer(q, {}); if (r.type === "answer" && r.sectionId !== s.id) askWrong.push([q, s.id, r.sectionId]); }));
 const twice = JSON.stringify(eng.answer("How was EMMA measured?", {})) === JSON.stringify(eng.answer("How was EMMA measured?", {}));
-console.log(JSON.stringify({ total: n, correct_section_and_fact: ok + "/" + n, per_set: per, deterministic: twice }));
+console.log(JSON.stringify({ total: n, correct_section_and_fact: ok + "/" + n, per_set: per, deterministic: twice, suggested_questions_checked: asks.length, suggested_that_decline: starterMiss, example_questions_in_wrong_section: askWrong }));
 miss.forEach(m => console.log("MISS", JSON.stringify(m)));

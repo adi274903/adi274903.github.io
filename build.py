@@ -26,7 +26,7 @@ import webcontent as S  # noqa: E402
 STATIC = "--static" in sys.argv           # published build: no chat button (Pages cannot run the model)
 DIST = HERE / ("docs" if STATIC else "dist")
 import hashlib
-VER = hashlib.md5(b"".join((HERE / "src" / f).read_bytes() for f in ("styles.css", "app.js", "engine.js", "ask.js"))).hexdigest()[:8]
+VER = hashlib.md5(b"".join((HERE / "src" / f).read_bytes() for f in ("styles.css", "app.js", "engine.js", "ask.js", "contact.js"))).hexdigest()[:8]
 NAME, ROLE = C.NAME, C.ROLE
 
 # ------------------------------------------------------------------ authored copy
@@ -218,8 +218,15 @@ def ask_data():
                          links=LINKS.get(tool, []), list=tool in LIST))
     starters = ["What did he do at EMMA AI?", "How fast is the retrieval at Value Global?", "What PubMedQA score did Med-Qwen get?",
                 "Which project fits a fintech role?"]
+    tracks = {}
+    for key, label, lead in (("fintech", "Fintech", "Projects most relevant to a fintech role:"),
+                             ("health", "Healthtech", "Projects most relevant to a healthtech role:"),
+                             ("ai", "AI engineer", "Projects most relevant to an AI engineer role:")):
+        items = [dict(title=en["title"], metric=en["metric"], note=en["metric_note"], href=en["slug"])
+                 for en in ENTRIES if key in en["tracks"].split()]
+        tracks[key] = dict(label=label, lead=lead, items=items)
     return dict(
-        sections=secs, starters=starters,
+        sections=secs, starters=starters, tracks=tracks,
         greeting="Hi. I answer questions about Aditya's projects, results, roles, papers and education, using only his record. Try one of these.",
         decline="I only answer questions about Aditya's record: his projects, results, experience, papers and education. I can't help with that.",
         contact=dict(reply=f"You can reach Aditya at {C.EMAIL}. He is based in {C.LOCATION} ({C.AVAILABILITY.lower()}).",
@@ -350,7 +357,7 @@ CHAT_BTN = '<a class="fab" id="ask-open" href="ask.html"><i></i>Ask my record</a
 
 def shell(title, desc, body, depth_attr="", page="index", extra_js="", fab=True):
     nav = ('<a class="opt" href="index.html#work">Work</a><a class="opt" href="ask.html">Ask</a><a class="opt mh" href="index.html#results">Results</a>'
-           '<a class="opt mh" href="index.html#stack">Stack</a><a class="opt" href="index.html#contact">Contact</a>')
+           '<a class="opt mh" href="index.html#stack">Stack</a><a class="opt" href="contact.html">Contact</a>')
     return f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -445,7 +452,7 @@ def home():
 <h1 class="name"><span>{e(NAME.split()[0])}</span><span>{e(NAME.split()[1])}</span></h1>
 {ledes}
 <p class="motto">{e(MOTTO)}</p>
-<div class="cta"><a class="btn p" href="{MAIL}">Book a chat</a><a class="btn" href="#work">See the work</a>
+<div class="cta"><a class="btn p" href="contact.html">Book a chat</a><a class="btn" href="#work">See the work</a>
 <a class="btn" href="{C.LINKEDIN}" rel="noopener">LinkedIn \u2197</a></div>
 <div class="tracks"><span class="k">View for</span><div class="seg" role="group" aria-label="Role track">{seg}</div></div>
 </div><figure class="pt hp"><img src="me.webp" width="320" height="320" alt="Portrait of {e(NAME)}" decoding="async" fetchpriority="high"></figure></div>
@@ -491,7 +498,7 @@ def case(i):
     pn = ((f'<a class="btn" href="{prev_["slug"]}">← {e(prev_["title"])}</a>') if prev_ else
           '<a class="btn" href="index.html#work">← All work</a>')
     pn += (f'<a class="btn" href="{next_["slug"]}">{e(next_["title"])} →</a>' if next_ else
-           '<a class="btn" href="index.html#contact">Get in touch →</a>')
+           '<a class="btn" href="contact.html">Get in touch →</a>')
     body = f"""<section class="case" style="border:0"><div class="wrap">
 <div class="crumb mono"><span>Case {e(en["n"])} / 0{len(ENTRIES)} · {e(en["kicker"])}</span><span>{e(en["year"])} · {e(en["source"])}</span></div>
 <h1>{e(en["title"])}</h1>
@@ -523,7 +530,35 @@ with its source, so every answer is something I wrote about my own work.</p></di
 <ol><li><b>Chunk.</b> My record is cut into {words_of(n_sec)} sections, one per project, role or topic.</li>
 <li><b>Match.</b> Each question and each line becomes a TF-IDF vector. Names such as EMMA or Tata pick the section; cosine similarity picks the best lines inside it.</li>
 <li><b>Quote.</b> A fixed template writes the reply around those lines. Same question, same answer, every time.</li></ol>
-<p class="cap">It refuses anything outside my record, such as coding help or general questions. It was checked on fifty-one questions I wrote; the first twenty-nine were used to tune it, so treat that as a regression check, not a blind test.</p></aside></div></section>"""
+<p class="cap">It refuses anything outside my record, such as coding help or general questions. It was checked on fifty-six questions I wrote; every set was used to tune it, so treat that as a regression check, not a blind test.</p></aside></div></section>"""
+
+
+FORM_ENDPOINT = "https://formsubmit.co/ajax/" + C.EMAIL      # FormSubmit: free, no account; first message needs a one-time confirmation
+
+
+def page_contact():
+    return f"""<section class="head"><div class="wrap">
+<span class="k">Book a chat</span>
+<h1 class="askh">Let\u2019s talk.</h1>
+<p class="lede" style="max-width:60ch">Tell me who you are and what you have in mind: a role, a project, a question about my work.
+Your message goes straight to my inbox and I reply to the email you give.</p></div></section>
+<section style="padding-top:0;border:0"><div class="wrap askw">
+<div class="cfw"><form id="cf" action="{FORM_ENDPOINT}" method="post" novalidate>
+<div class="fr"><label for="cn">Your name</label><input id="cn" name="name" type="text" autocomplete="name" maxlength="120" required></div>
+<div class="fr"><label for="ce">Your email</label><input id="ce" name="email" type="email" autocomplete="email" maxlength="200" required></div>
+<div class="fr"><label for="cs">Subject</label><input id="cs" name="subject" type="text" maxlength="160" placeholder="e.g. AI engineer role at your company" required></div>
+<div class="fr"><label for="cm">Message</label><textarea id="cm" name="message" rows="7" maxlength="4000" required></textarea></div>
+<input type="text" name="_honey" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;opacity:0;height:0;width:0">
+<input type="hidden" name="_subject" value="Portfolio message"><input type="hidden" name="_template" value="table"><input type="hidden" name="_captcha" value="false">
+<button class="btn p" type="submit">Send message</button>
+<p id="cmsg" class="cmsg" role="status" aria-live="polite"></p></form>
+<div id="cdone" class="cdone" tabindex="-1" hidden><h2>Message sent.</h2><p>Thank you. I will reply to the email you gave.</p>
+<p><a class="btn" href="index.html">Back to the portfolio</a></p></div></div>
+<aside class="how"><span class="k">Or reach me directly</span>
+<ul class="rows" style="margin-top:14px"><li><a href="{MAIL}"><b>{e(C.EMAIL)}</b><span>Email \u2197</span></a></li>
+<li><a href="{C.LINKEDIN}" rel="noopener"><b>LinkedIn</b><span>Message me there \u2197</span></a></li>
+<li><a href="{C.GITHUB}" rel="noopener"><b>GitHub</b><span>adi274903 \u2197</span></a></li></ul>
+<p class="cap">The form sends your message by email through FormSubmit. Nothing is stored on this site. Based in {e(C.LOCATION)}; {e(C.AVAILABILITY.lower())}.</p></aside></div></section>"""
 
 
 def build():
@@ -541,6 +576,8 @@ def build():
     (DIST / "me.webp").write_bytes((HERE / "src/assets/me.webp").read_bytes())
     (DIST / "app.js").write_text((HERE / "src/app.js").read_text())
     (DIST / "ask.js").write_text((HERE / "src/ask.js").read_text())
+    (DIST / "contact.js").write_text((HERE / "src/contact.js").read_text())
+    (DIST / "contact.html").write_text(shell(f"Book a chat \u2014 {NAME}", "Send Aditya a message: name, email, subject and message.", page_contact(), page="contact.html", extra_js=f'<script src="contact.js?v={VER}" defer></script>'))
     (DIST / "ask.html").write_text(shell(f"Ask my record \u2014 {NAME}", "Ask about Aditya\u2019s projects, results and experience. Answers are quoted from his record by cosine similarity, with no AI model.", page_ask(), page="ask.html", fab=False, extra_js=f'<script src="engine.js?v={VER}" defer></script><script src="ask.js?v={VER}" defer></script>'))
     (DIST / "index.html").write_text(shell(
         f"{NAME} — {ROLE}",

@@ -24,10 +24,13 @@
               improve: ["raise", "cut", "reduce", "outscore"], faster: ["cut", "reduce"], speed: ["cut", "second"], accuracy: ["raise", "accurate"],
               studied: ["degree", "university"], job: ["role", "intern"], worked: ["role", "intern"], used: ["pgvector", "qdrant", "pytorch"] };
   function expand(toks) { var out = toks.slice(); toks.forEach(function (t) { if (SYN[t]) out = out.concat(SYN[t]); }); return out; }
-  function vec(toks, idf) {            // log-scaled tf * idf, L2-normalised sparse vector
-    var tf = {}, v = {}, n = 0, k;
+  function vec(toks, idf, query) {     // log-scaled tf * idf, L2-normalised sparse vector
+    var tf = {}, v = {}, n = 0, k, top = query ? Math.max.apply(null, Object.keys(idf).map(function (x) { return idf[x]; })) : 0;
     toks.forEach(function (t) { tf[t] = (tf[t] || 0) + 1; });
-    for (k in tf) { if (idf[k] !== undefined) { v[k] = (1 + Math.log(tf[k])) * idf[k]; n += v[k] * v[k]; } }
+    for (k in tf) {
+      if (idf[k] !== undefined) { v[k] = (1 + Math.log(tf[k])) * idf[k]; n += v[k] * v[k]; }
+      else if (query) { var u = (1 + Math.log(tf[k])) * top; n += u * u; }      // words the record never uses still count against the match
+    }
     n = Math.sqrt(n) || 1;
     for (k in v) v[k] /= n;
     return v;
@@ -41,6 +44,9 @@
   var THANKS = /\b(thanks|thank you|cheers|great|awesome|nice)\b\s*[.!]*\s*$/i;
   var HOWMUCH = /\b(how (much|many|fast|accurate|good|well)|what (was|is|were) the .{0,30}(score|result|f1|accuracy|improvement|time|speed|number|rate|metric)|by how much|what (score|f1|accuracy|number|percent)|percent|measured|metric|result)\b/i;
   var DESCRIBE = /\b(what (did|does|has) (he|aditya)\b.{0,25}\b(do|done|build|built|work|contribute|achieve)|tell me about|describe|walk me through|summari[sz]e|overview|exactly|what is .{0,40} about|what did .{0,30} do)\b/i;
+
+  var ROLEFIT = /\b(fit|fits|fitting|relevant|suit|suits|suitable|best for|good for|right for|match|matches|projects? for|which (project|work|experience)|what (project|work|experience))\b/i;
+  var TRACKWORD = { fintech: /\b(fintech|finance|financial|bank|banking|credit|fraud|payments?)\b/i, health: /\b(health|healthcare|healthtech|clinical|medical|hospital|physician)\b/i, ai: /\b(ai engineer|ml engineer|machine learning|genai|llm|ai role|ai job|engineer role)\b/i };
 
   function strip(chunk) {              // drop the "Org, Role (dates): " prefix so the answer starts at the substance
     var m = chunk.match(/^[^:]{0,140}?\):\s+/);
@@ -68,6 +74,7 @@
     secs.forEach(function (sec) {
       sec.sv = vec(sec.sectionToks, idf);
       sec.cv = sec.chunkToks.map(function (t) { return vec(t, idf); });
+      sec.av = sec.s.asks.map(function (a) { return vec(expand(tokens(a)), idf); });   // the section's own example questions
       sec.aliasRx = sec.s.aliases.map(function (a) { var rx = new RegExp("(^|[^a-z0-9])" + esc(a.toLowerCase()) + "s?($|[^a-z0-9])"); rx.w = 1 + 0.5 * (a.trim().split(/\s+/).length - 1); return rx; });
     });
     var byId = {}; secs.forEach(function (sec) { byId[sec.s.id] = sec; });
@@ -77,12 +84,13 @@
       secs.forEach(function (sec) {
         var h = 0; sec.aliasRx.forEach(function (rx) { if (rx.test(ql)) h += rx.w; });
         var sc = cos(qv, sec.sv);
+        sec.av.forEach(function (a) { var c = cos(qv, a); if (c >= 0.55) sc = Math.max(sc, 0.9 * c); });
         hits[sec.s.id] = h;
         var total = sc + Math.min(h, 3) * 0.35;
         if (total > bs) { bs = total; best = sec; }
       });
       var hasHit = hits[best.s.id] > 0;
-      if (hasHit || bs >= 0.30) return { sec: best, score: cos(qv, best.sv), how: hasHit ? "name match + cosine" : "cosine" };
+      if (hasHit || bs >= 0.30) return { sec: best, score: Math.max(cos(qv, best.sv), best.av.reduce(function (m, a) { var c = cos(qv, a); return c >= 0.55 ? Math.max(m, 0.9 * c) : m; }, 0)), how: hasHit ? "name match + cosine" : "cosine" };
       if (state && state.last && tokens(q).length <= 9) return { sec: byId[state.last], score: cos(qv, byId[state.last].sv), how: "follow-up" };
       return null;
     }
@@ -95,7 +103,12 @@
       if (OFFTOPIC.test(q)) return { type: "decline", lines: [data.decline], suggestions: data.starters, how: "off-topic rule" };
       if (CONTACT.test(q)) return { type: "contact", lead: "Here is how to reach Aditya.", lines: [data.contact.reply], links: data.contact.links, suggestions: data.starters, section: "Contact", score: 1, how: "keyword" };
       if (THANKS.test(q) && q.length < 40) return { type: "thanks", lines: ["Happy to help. Ask me about any project, result or role."], suggestions: data.starters };
-      var qv = vec(expand(tokens(q)), idf), r = route(q, qv, state);
+      if (ROLEFIT.test(q) && data.tracks) {     // "which project fits a fintech role?" -> the projects tagged for that track
+        var tk = ["fintech", "health", "ai"].filter(function (k) { return TRACKWORD[k].test(q); })[0];
+        if (tk) { var T = data.tracks[tk]; return { type: "tracks", section: "Role fit: " + T.label, how: "role tags", lead: T.lead, lines: T.items.map(function (x) { return x.title + ": " + x.metric + " (" + x.note + ")"; }), links: T.items.map(function (x) { return { label: x.title, href: x.href }; }), suggestions: data.starters, score: 1 }; }
+        return { type: "tracks", section: "Role fit", how: "role tags", lead: "Which kind of role do you have in mind?", lines: ["Fintech, healthtech, or AI engineer. I will list the projects tagged for it."], suggestions: ["Which project fits a fintech role?", "Which projects fit healthtech?", "Which projects fit an AI engineer role?"], score: 1 };
+      }
+      var qv = vec(expand(tokens(q)), idf, true), r = route(q, qv, state);
       if (!r) return { type: "decline", lines: [data.decline], suggestions: data.starters, how: "no section matched" };
       var sec = r.sec, s = sec.s, ranked = sec.cv.map(function (v, idx) { return [cos(qv, v), idx]; }).sort(function (a, b) { return b[0] - a[0] || a[1] - b[1]; });
       var out = { type: "answer", section: s.title, sectionId: s.id, score: Math.round(r.score * 100) / 100, how: r.how, links: s.links || [], suggestions: s.asks, sourceIdx: ranked[0][1] };
