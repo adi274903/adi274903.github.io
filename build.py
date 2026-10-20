@@ -407,14 +407,26 @@ def shell(title, desc, body, depth_attr="", page="index", extra_js="", fab=True)
 {CHAT_BTN if fab else ""}{extra_js}<script src="app.js?v={VER}" defer></script></body></html>"""
 
 
+BLURB = {
+    "01": "A small clinical reasoning model that beats MedGemma on every clinical benchmark I tested. I continued pretraining Qwen3.5 on medical text, then fine-tuned it with DoRA on a mix of clinical reasoning data, and published it on Hugging Face.",
+    "02": "I rebuilt the retrieval behind a clinical education podcast platform so residents get more accurate, more complete answers, using Gemini and pgvector on GCP. Physicians rated the answers, and students surveyed the app.",
+    "03": "A research assistant that pulls from six scholarly sources. I benchmarked open models against Claude on Deep Research Bench and showed that abstract-only retrieval is what limits it.",
+    "04": "At CMU I built an evaluation pipeline that turns thousands of full-text papers into schema-bound records. Two extractor models, a DeepSeek judge and a human verifier keep the results consistent from run to run.",
+    "05": "A patient-facing agent that turns a plain-language question into the right billing code. MedGemma works out the intent and deterministic SQL does the pricing across hospital price files, so the answer is reproducible.",
+    "06": "At Value Global I built an agentic proof of concept for chemical safety data sheets, combining vector search with graph traversal. I also built governed MCP tool access to Oracle ERP.",
+    "07": "I moved legacy SAS credit-bureau reporting onto Databricks PySpark with automated tests, turning a multi-day manual prep into a short automated run.",
+    "08": "An NLP pipeline that flags fraud in text messages and cost data, using XGBoost and SpaCy entity recognition, served through REST APIs.",
+}
+
+
 def card(en):
     tags = "".join(f"<li>{''.join(ic(s, n) for s, n, in icons_in(t)[:1])}{e(t)}</li>" for t in en["tags"][:4])
     return (f'<article class="card cs" data-tr="{en["tracks"]}">'
             f'<div class="m"><span class="mono">{e(en["n"])} · {e(en["kicker"])}</span>'
             f'<span class="mono">{e(en["year"])}</span></div>'
             f'<h3>{e(en["title"])}</h3>'
-            f'<div><div class="big">{e(en["metric"])}</div><div class="bn">{e(en["metric_note"])}</div></div>'
-            f'<div class="more"><div>{en["chart"]}</div></div>'
+            f'<p class="ln">{e(BLURB[en["n"]])}</p>'
+            f'<div class="more"><div><div class="big">{e(en["metric"])}</div><div class="bn">{e(en["metric_note"])}</div>{en["chart"]}</div></div>'
             f'<ul class="chips">{tags}</ul>'
             f'<div class="acts"><button type="button" class="tg" aria-expanded="false">Show numbers</button>'
             f'<a href="{en["slug"]}">Case study \u2192</a></div></article>')
