@@ -169,14 +169,14 @@ def mq_score():
 
 
 def mq_table():
-    head = "".join(f'<th{" class=us" if i == 2 else ""}>{e("Med-Qwen (ours)" if i == 2 else h if i else "Benchmark")}</th>'
-                   for i, h in enumerate(MQ_HEAD))
+    order = [2, 1, 3, 4]          # Med-Qwen first, then its base, then the two comparison models (left to right)
+    head = "".join(f'<th{" class=us" if i == 2 else ""}>{e("Med-Qwen (ours)" if i == 2 else MQ_HEAD[i])}</th>' for i in order)
+    head = "<th>Benchmark</th>" + head
     body = ""
     for r in MQ_ROWS:
         best = max(float(x) for x in r[1:])
         tds = "".join(
-            f'<td class="{"us " if i == 2 else ""}{"best" if float(x) == best else ""}">{e(x)}</td>'
-            for i, x in enumerate(r) if i)
+            f'<td class="{"us " if i == 2 else ""}{"best" if float(r[i]) == best else ""}">{e(r[i])}</td>' for i in order)
         body += f'<tr><th scope="row">{e(r[0])}</th>{tds}</tr>'
     return (f'<div class="scroll tblw"><table class="cmp"><caption>PubMedQA, MedQA (USMLE 4-option), GPQA Diamond, MedMCQA, '
             f'MMLU Med aggregate and AfriMed-QA. Highest score in each row is highlighted.</caption>'
