@@ -515,8 +515,7 @@ def home():
 <ul class="tools" aria-label="Tools used across the work">{tools}</ul>
 <div class="scroll" style="margin-top:22px">{matrix_svg()}</div>
 <p class="cap">A darker cell means more bullets. Retrieval and evaluation run through most of the work; fine-tuning is concentrated in one project and the 4.2B model behind it.</p>
-<div class="sh" style="margin-top:clamp(40px,5vw,70px)"><span class="k">Timeline</span><h2>August 2023 to now.</h2></div>
-<div class="scroll">{CH.timeline(TIMELINE)}</div></div></section>
+</div></section>
 
 <section id="experience"><div class="wrap"><div class="sh"><span class="k">Experience</span>
 <h2>Roles, every bullet as written.</h2></div>{xp}</div></section>
