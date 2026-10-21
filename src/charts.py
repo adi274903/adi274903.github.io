@@ -16,19 +16,19 @@ def hbars(title, rows, maxv=None, note="", label=None, w=W, order=True):
     if order:
         rows = sorted(rows, key=lambda r: -r[1])
     maxv = maxv or max(r[1] for r in rows)
-    rh, top = 34, 26
-    x0, x1 = (140, w - 96) if w >= W else (150, w - 66)
-    h = top + rh * len(rows) + (22 if note else 6)
-    out = [f'<text class="t" x="0" y="12">{e(title)}</text>']
+    rh, top = 40, 30
+    x0, x1 = (168, w - 78) if w >= W else (150, w - 66)
+    h = top + rh * len(rows) + (28 if note else 6)
+    out = [f'<text class="t" x="0" y="14">{e(title)}</text>']
     for i, (lab, v, shown, hot) in enumerate(rows):
         y = top + i * rh
         bw = max(3, (x1 - x0) * v / maxv)
         out.append(
-            f'<text class="l{" hot" if hot else ""}" x="0" y="{y + 14}">{e(lab)}</text>'
-            f'<rect class="tr" x="{x0}" y="{y}" width="{x1 - x0}" height="18" rx="4"/>'
+            f'<text class="l{" hot" if hot else ""}" x="0" y="{y + 16}">{e(lab)}</text>'
+            f'<rect class="tr" x="{x0}" y="{y}" width="{x1 - x0}" height="22"/>'
             f'<rect class="bar{" hot" if hot else ""}" x="{x0}" y="{y}" width="{bw:.1f}" '
-            f'height="18" rx="4" style="--i:{i}"/>'
-            f'<text class="v" x="{x1 + 10}" y="{y + 14}">{e(shown)}</text>')
+            f'height="22" style="--i:{i}"/>'
+            f'<text class="v" x="{x1 + 10}" y="{y + 16}">{e(shown)}</text>')
     if note:
         out.append(f'<text class="n" x="0" y="{h - 6}">{e(note)}</text>')
     return _svg(h, label or title, "".join(out), w=w)

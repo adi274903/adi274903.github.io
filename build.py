@@ -157,6 +157,10 @@ def mq_wins():
     return out
 
 
+_W = "zero one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen".split()
+_T = {2: "twenty", 3: "thirty", 4: "forty", 5: "fifty", 6: "sixty", 7: "seventy"}
+
+
 def mq_score():
     rows = "".join(
         f'<div class="vr"><span class="vn">{e(n)}</span><span class="cells" aria-hidden="true">'
@@ -164,29 +168,6 @@ def mq_score():
         + f'</span><b>{sum(won)}/{len(won)}</b></div>' for n, won in mq_wins())
     return (f'<div class="vs" role="group" aria-label="Med-Qwen wins out of six benchmarks, per comparison model">'
             f'<span class="k">Wins out of {len(MQ_ROWS)} benchmarks</span>{rows}</div>')
-
-
-def mq_table():
-    order = [2, 1, 3, 4]          # Med-Qwen first, then its base, then the two comparison models (left to right)
-    head = "".join(f'<th{" class=us" if i == 2 else ""}>{e("Med-Qwen (ours)" if i == 2 else MQ_HEAD[i])}</th>' for i in order)
-    head = "<th>Benchmark</th>" + head
-    body = ""
-    for r in MQ_ROWS:
-        best = max(float(x) for x in r[1:])
-        tds = "".join(
-            f'<td class="{"us " if i == 2 else ""}{"best" if float(r[i]) == best else ""}">{e(r[i])}</td>' for i in order)
-        body += f'<tr><th scope="row">{e(r[0])}</th>{tds}</tr>'
-    return (f'<div class="scroll tblw"><table class="cmp"><caption>PubMedQA, MedQA (USMLE 4-option), GPQA Diamond, MedMCQA, '
-            f'MMLU Med aggregate and AfriMed-QA. Highest score in each row is highlighted.</caption>'
-            f'<thead><tr>{head}</tr></thead><tbody>{body}</tbody></table></div>'
-            f'<p class="cap">Zero-shot, greedy inference with normalized choice log-probabilities. Med-Qwen beats '
-            f'MedGemma-1.5-4B-it on every benchmark and Gemma-4-E4B-it on five of six; it trails its own base model on '
-            f'MedQA, MMLU Med and AfriMed-QA. Source: '
-            f'<a class="ln" href="https://huggingface.co/adi274903/Med-Qwen-3.5-4B-Instruct" rel="noopener">the published model card</a>.</p>')
-
-
-_W = "zero one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen".split()
-_T = {2: "twenty", 3: "thirty", 4: "forty", 5: "fifty", 6: "sixty", 7: "seventy"}
 
 
 def words_of(n):
@@ -373,38 +354,72 @@ TIMELINE = [    # newest first: top row is now, bottom row is where it started
 
 # ------------------------------------------------------------------------ pieces
 ICON = ("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E"
-        "%3Crect width='32' height='32' rx='7' fill='%230b0d12'/%3E%3Ctext x='16' y='22' "
-        "text-anchor='middle' font-family='Arial' font-size='15' font-weight='700' fill='%23eceef4'"
-        "%3EAS%3C/text%3E%3Ccircle cx='26' cy='7' r='3' fill='%23ffc46b'/%3E%3C/svg%3E")
+        "%3Crect width='32' height='32' fill='%230c0a08'/%3E%3Ctext x='16' y='22' "
+        "text-anchor='middle' font-family='Georgia,serif' font-size='15' fill='%23d2ac5f'"
+        "%3EAS%3C/text%3E%3C/svg%3E")
 MAIL = f"mailto:{C.EMAIL}?subject=" + "Let%27s%20talk"
 
+# photographs of the places in the record (Wikimedia Commons, credited in the footer); never presented as his own pictures
+PLACES = {   # key -> (file, what the caption says, alt)
+    "houston": ("houston.webp", "Houston, the nearest big city to Tomball, TX, where Value Global is based.", "Skyline of downtown Houston under a blue sky"),
+    "pittsburgh": ("pittsburgh.webp", "Pittsburgh, where Carnegie Mellon University is.", "Carnegie Mellon University campus buildings in Pittsburgh"),
+    "mumbai": ("mumbai.webp", "Mumbai, where Tata Capital is based.", "Mumbai skyline seen across the water with sailing boats"),
+    "hyderabad": ("hyderabad.webp", "Hyderabad, where Jocata is based.", "The Charminar monument in Hyderabad at night"),
+}
+CITY_OF = {"Value Global": "houston", "Carnegie": "pittsburgh", "Tata": "mumbai", "Jocata": "hyderabad"}
 
-CHAT_BTN = '<a class="fab" id="ask-open" href="ask.html"><i></i>Ask my record</a>\n'
+
+def _credits():
+    import json
+    rows = json.loads((HERE / "src/assets/places/credits.json").read_text())
+    by = {}
+    for r in rows:
+        key = next((k for k, (f, _, _) in PLACES.items() if r["file"].split("/")[-1].startswith(
+            {"houston": "buildings-city-houston", "pittsburgh": "carnegie-mellon", "mumbai": "mumbai-skyline",
+             "hyderabad": "charminar-hyderabad"}[k])), None)
+        if key:
+            by[key] = r
+    return by
 
 
-def shell(title, desc, body, depth_attr="", page="index", extra_js="", fab=True):
-    nav = ('<a class="opt" href="index.html#work">Work</a><a class="opt" href="ask.html">Ask</a><a class="opt mh" href="index.html#results">Results</a>'
-           '<a class="opt mh" href="index.html#stack">Stack</a><a class="opt" href="contact.html">Contact</a>')
+def credits_html():
+    by = _credits()
+    parts = []
+    for k in ("houston", "pittsburgh", "mumbai", "hyderabad"):
+        r = by[k]
+        parts.append(f'<a href="{e(r["page"])}" rel="noopener">{e(r["title"])}</a> by {e(r["creator"])}, {e(r["license"])}')
+    return "Photographs of cities, via Wikimedia Commons: " + "; ".join(parts) + "."
+
+
+CHAT_BTN = ""
+
+
+def shell(title, desc, body, depth_attr="", page="index", extra_js="", fab=True, credits=False, bodycls=""):
+    cur = lambda n: ' aria-current="page"' if page == n else ""
+    nav = (f'<a class="wk" href="index.html#work">Work</a><a class="mh" href="index.html#experience">Experience</a>'
+           f'<a class="mh" href="index.html#results">Results</a><a href="ask.html"{cur("ask.html")}>Ask</a>'
+           f'<button class="thm" id="tg" type="button" aria-label="Switch between dark and light">Theme</button>'
+           f'<a class="btn p" href="contact.html"{cur("contact.html")}>Book a chat</a>')
+    cr = f'<p class="cr" id="credits">{credits_html()}</p>' if credits else ""
     return f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{e(title)}</title><meta name="description" content="{e(desc)}">
 <meta property="og:title" content="{e(title)}"><meta property="og:description" content="{e(desc)}">
-<meta name="color-scheme" content="light dark"><meta name="theme-color" content="#0b0d12">
-<link rel="icon" href="{ICON}"><link rel="stylesheet" href="styles.css?v={VER}">
-<script>try{{var t=localStorage.getItem("th");if(t)document.documentElement.dataset.theme=t}}catch(e){{}}</script>
-</head><body>
-<header class="top"><div class="wrap"><a class="wm" href="index.html"><i></i>{e(NAME)}</a>
-<nav>{nav}<button class="tg" id="tg" type="button" aria-label="Toggle light and dark theme">Theme</button></nav></div></header>
+<meta name="color-scheme" content="dark light"><meta name="theme-color" content="#0c0a08">
+<link rel="icon" href="{ICON}">
+<link rel="preload" href="fonts/YoungSerif-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/SourceSerif4-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="styles.css?v={VER}">
+<script>document.documentElement.classList.add("js");try{{var t=localStorage.getItem("th");if(t)document.documentElement.dataset.theme=t}}catch(e){{}}</script>
+</head><body{bodycls}>
+<header class="topbar"><a class="wm" href="index.html">{e(NAME)}</a><nav aria-label="Main">{nav}</nav></header>
 <main>{body}</main>
-<footer id="contact"><div class="wrap">
-<span class="k">Let’s talk</span>
-<p style="margin:14px 0 4px"><a class="mail" href="{MAIL}">{e(C.EMAIL)}</a></p>
-<div class="l"><a href="{C.LINKEDIN}" rel="noopener">LinkedIn ↗</a><a href="{C.GITHUB}" rel="noopener">GitHub ↗</a><a href="{C.ARXIV}" rel="noopener">arXiv ↗</a></div>
-<p>{e(NAME)} · {e(ROLE)} · {e(C.CONTACT_LINE)}</p>
-<p>Logos are trademarks of their owners; icons from Simple Icons (CC0).</p>
-</div></footer>
-{CHAT_BTN if fab else ""}{extra_js}<script src="app.js?v={VER}" defer></script></body></html>"""
+<footer class="foot"><div class="row"><span>{e(ROLE)}, {e(C.LOCATION)}</span>
+<nav aria-label="Elsewhere"><a href="{MAIL}">Email</a><a href="{C.LINKEDIN}" rel="noopener">LinkedIn</a><a href="{C.GITHUB}" rel="noopener">GitHub</a><a href="{C.ARXIV}" rel="noopener">arXiv</a><button class="thm tgf" type="button" aria-label="Switch between dark and light">Theme</button></nav>
+<span>{e(NAME)}</span></div>
+<p class="cr">Logos are trademarks of their owners; technology icons from Simple Icons (CC0).</p>{cr}</footer>
+{extra_js}<script src="app.js?v={VER}" defer></script></body></html>"""
 
 
 BLURB = {
@@ -419,64 +434,97 @@ BLURB = {
 }
 
 
-def card(en):
-    tags = "".join(f"<li>{''.join(ic(s, n) for s, n, in icons_in(t)[:1])}{e(t)}</li>" for t in en["tags"][:4])
-    return (f'<article class="card cs" data-tr="{en["tracks"]}">'
-            f'<div class="m"><span class="mono">{e(en["n"])} · {e(en["kicker"])}</span>'
-            f'<span class="mono">{e(en["year"])}</span></div>'
-            f'<h3>{e(en["title"])}</h3>'
-            f'<p class="ln">{e(BLURB[en["n"]])}</p>'
-            f'<div class="more"><div><div class="big">{e(en["metric"])}</div><div class="bn">{e(en["metric_note"])}</div>{en["chart"]}</div></div>'
-            f'<ul class="chips">{tags}</ul>'
-            f'<div class="acts"><button type="button" class="tg" aria-expanded="false">Show numbers</button>'
-            f'<a href="{en["slug"]}">Case study \u2192</a></div></article>')
+def work_row(en):
+    tags = "".join(f"<li>{''.join(ic(s, n) for s, n in icons_in(t)[:1])}{e(t)}</li>" for t in en["tags"][:4])
+    n = en["n"]
+    return (f'<li data-n="{n}" data-tr="{en["tracks"]}" data-reveal>'
+            f'<button class="wn" type="button" aria-controls="wf-{n}" aria-expanded="false">'
+            f'<span class="wt">{e(en["title"])}</span><span class="wm">{e(en["kicker"])}, {e(en["year"])}</span></button>'
+            f'<p class="wb">{e(BLURB[n])}</p><ul class="chips">{tags}</ul>'
+            f'<div class="wf" id="wf-{n}"><div class="big">{e(en["metric"])}</div><p class="note">{e(en["metric_note"])}</p>{en["chart"]}</div>'
+            f'<div class="wa"><button class="show" type="button">Show numbers</button><a href="{en["slug"]}">Case study</a></div></li>')
+
+
+def stage_panes():
+    out = ['<div class="pane me on" data-pane="me"><figure><img src="me.webp" width="640" height="640" '
+           f'alt="Portrait of {e(NAME)}" decoding="async" fetchpriority="high">'
+           f'<figcaption>{e(NAME)}, {e(C.LOCATION)}. {e(C.AVAILABILITY)}.</figcaption></figure></div>']
+    for en in ENTRIES:
+        chart = _chart_for(en["n"])
+        out.append(f'<div class="pane" data-pane="w{en["n"]}" aria-hidden="true"><div class="fill">'
+                   f'<span class="ttl">{e(en["title"])}</span><div class="big">{e(en["metric"])}</div>'
+                   f'<p class="note">{e(en["metric_note"])}</p>{chart}</div></div>')
+    for k, (f, cap, alt) in PLACES.items():
+        out.append(f'<div class="pane" data-pane="{k}" aria-hidden="true"><figure><img src="places/{f}" width="1500" height="1000" '
+                   f'alt="{e(alt)}" loading="lazy" decoding="async"><figcaption>{e(cap)} <a href="#credits">Photo credit</a></figcaption></figure></div>')
+    return "".join(out)
+
+
+def mq_table():
+    order = [2, 1, 3, 4]          # Med-Qwen first, then its base, then the two comparison models (left to right)
+    head = "".join(f'<th class="c{i}{" us" if i == 2 else ""}" scope="col">{e("Med-Qwen" if i == 2 else MQ_HEAD[i])}</th>' for i in order)
+    head = '<th scope="col">Benchmark</th>' + head
+    body = ""
+    for r in MQ_ROWS:
+        tds = "".join(f'<td class="c{i}{" us" if i == 2 else ""}" data-v="{e(r[i])}">{e(r[i])}</td>' for i in order)
+        body += f'<tr><th scope="row">{e(r[0])}</th>{tds}</tr>'
+    return (f'<div class="tblw"><table class="cmp" id="cmp" data-sel="all">'
+            f'<thead><tr>{head}</tr></thead><tbody>{body}</tbody></table></div>'
+            f'<p class="cap">PubMedQA, MedQA (USMLE 4-option), GPQA Diamond, MedMCQA, MMLU Med aggregate and AfriMed-QA. '
+            f'Zero-shot, greedy inference with normalized choice log-probabilities. '
+            f'Source: <a class="ln" href="https://huggingface.co/adi274903/Med-Qwen-3.5-4B-Instruct" rel="noopener">the published model card</a>.</p>')
+
+
+def mq_verdict():
+    w = {n: sum(won) for n, won in mq_wins()}
+    k = list(w.items())
+    return (f"Med-Qwen beats MedGemma-1.5-4B-it on <em>{words_of(k[0][1])} of six</em> benchmarks and Gemma-4-E4B-it on "
+            f"<em>{words_of(k[1][1])} of six</em>. It trails its own base model on three.")
+
+
+def skills_list():
+    hits = [(c, [lab for lab, bl in MCOLS if any(re.search(rx, b, re.I) for b in bl)],
+             sum(1 for _, bl in MCOLS for b in bl if re.search(rx, b, re.I))) for c, rx in CONCEPTS]
+    mx = max(t for _, _, t in hits)
+    return "".join(
+        f'<li data-reveal><span class="a">{e(c)}</span><div class="m"><div class="bar2" role="img" aria-label="{e(c)}: {t} resume bullets">'
+        f'<i style="--w:{100 * t / mx:.0f}%"></i></div><span class="who">{t} {'bullet' if t == 1 else 'bullets'} across {e(", ".join(who))}</span></div></li>'
+        for c, who, t in hits)
 
 
 def home():
-    ledes = "".join(f'<p class="lede" data-lede="{k}"{"" if k == "ai" else " hidden"}>{fmt(v)}</p>'
-                    for k, v in LEDE.items())
-    stats = "".join(
-        f'<div class="stats" data-stats="{k}"{"" if k == "ai" else " hidden"}>'
-        + "".join(f"<div><b>{e(a)}</b><span>{e(b)}</span></div>" for a, b in v) + "</div>"
-        for k, v in STATS.items())
+    ledes = "".join(f'<p class="lede" data-lede="{k}"{"" if k == "ai" else " hidden"}>{fmt(v)}</p>' for k, v in LEDE.items())
     seg = "".join(f'<button type="button" data-track="{k}" aria-pressed="{str(k == "all").lower()}">{e(v)}</button>'
                   for k, v in TRACKS)
-    grid = "".join(card(en) for en in ENTRIES)
-    panels = "".join(
-        f'<figure class="dp"><span class="k">{e(k)}</span><h3>{e(t)}</h3>{svg}</figure>'
-        for k, t, svg in [
-            ("Latency", "Retrieval cut from ~8 s to 2 s", ENTRIES[5]["chart"]),
-            ("Workflow", "Reporting prep cut from 3 days to 2 hours", ENTRIES[6]["chart"]),
-            ("Accuracy", "Code selection raised from 82% to 91%", ENTRIES[4]["chart"]),
-            ("Benchmarks", "A 4.2B clinical model against its base", ENTRIES[0]["chart"]),
-            ("Evaluation", "Why the retrieval layer was the limit", ENTRIES[2]["chart"]),
-            ("Scale", "Records from 15,944 papers, zero skew", ENTRIES[3]["chart"])])
+    works = "".join(work_row(en) for en in ENTRIES)
     pool = " ".join([" ".join(en["bullets"]) + " " + " ".join(en["tags"]) for en in ENTRIES]
                     + [" ".join(x["bullets"]) for x in C.EXPERIENCE] + [" ".join(p["bullets"]) for p in C.PROJECTS])
     tools = "".join(f"<li>{ic(s, n)}<span>{e(n)}</span></li>" for s, n in icons_in(pool))
+
+    def _city(org):
+        return next((v for k, v in CITY_OF.items() if k in org), "")
     xp = "".join(
-        f'<details{" open" if i == 0 else ""}><summary>{co_logo(x["org"])}<b>{e(x["org"])}</b><span>{e(x["period"])}</span>'
-        f'<small>{e(x["role"])}{" · " + e(x["meta"]) if x["meta"] else ""}</small>'
-        f'<span class="lg">{"".join(ic(s, n) for s, n in icons_in(" ".join(x["bullets"])))}</span></summary>'
+        f'<details{" open" if i == 0 else ""} data-city="{_city(x["org"])}" data-reveal><summary>{co_logo(x["org"])}'
+        f'<span class="org">{e(x["org"])}</span><span class="when">{e(x["period"])}</span>'
+        f'<span class="role">{e(x["role"])}{", " + e(x["meta"]) if x["meta"] else ""}</span>'
+        f'<span class="lgs">{"".join(ic(s, n) for s, n in icons_in(" ".join(x["bullets"])))}</span></summary>'
         f'<ul>{"".join(f"<li>{fmt(b)}</li>" for b in x["bullets"])}</ul></details>'
         for i, x in enumerate(C.EXPERIENCE))
-    pubs = "".join(f'<li><a href="{p["url"]}" rel="noopener"><b>{e(p["title"])}</b>'
-                   f'<span>{e(p["venue"])}{"" if p["year"] in p["venue"] else " \u00b7 " + e(p["year"])} \u2197</span></a></li>'
-                   for p in C.PUBLICATIONS)
+    pubs = "".join(f'<li><a href="{p["url"]}" rel="noopener">{e(p["title"])}</a>'
+                   f'<span>{e(p["venue"])}{"" if p["year"] in p["venue"] else ", " + e(p["year"])}</span></li>' for p in C.PUBLICATIONS)
     HONOR_LINKS = {"Kaggle": "https://www.kaggle.com/competitions/11785-hw-2-p-2-face-verification-spring-2025/leaderboard",
                    "AMIA": "https://workshopamia2025.github.io/AMIA-KDDM-2025/posters/KDDM_Poster%5BCMU%5D.pdf"}
 
     def _hon(h):
         t, o, d, w = honor(h)
         url = next((u for k, u in HONOR_LINKS.items() if k in h), "")
-        title = (f'<a class="ln stretch" href="{url}" target="_blank" rel="noopener">{e(t)} \u2197</a>' if url else e(t))
-        return (f'<li class="hn{" lk" if url else ""}"><div><b>{title}</b>' + (f'<span class="org">{e(o)}</span>' if o else "") + "</div>"
-                + (f"<p>{fmt(d)}</p>" if d else "") + (f'<time class="wh">{e(w)}</time>' if w else "") + "</li>")
+        title = f'<a href="{url}" target="_blank" rel="noopener">{e(t)}</a>' if url else e(t)
+        sub = ", ".join(x for x in (d, w) if x)
+        return f'<li>{title}{(", " + e(o)) if o else ""}<span>{e(sub)}</span></li>'
     _SEASON = {"winter": 0.0, "spring": 0.25, "summer": 0.5, "fall": 0.75}
     _MONTH = {m: i / 12 for i, m in enumerate("jan feb mar apr may jun jul aug sep oct nov dec".split())}
 
     def _when(h):
-        """Sortable decimal year from the honour's own date text ('Nov 2025', 'Fall 2024', '2024')."""
         w = honor(h)[3].lower()
         y = re.search(r"(20\d\d)", w)
         if not y:
@@ -486,44 +534,53 @@ def home():
         return int(y.group(1)) + frac
 
     hon = "".join(_hon(h) for h in sorted(C.HONORS, key=_when, reverse=True))
-    edu = "".join(f'<li><b>{e(d["degree"])}</b><span>{e(d["school"])} \u00b7 {e(d["meta"])}</span></li>'
-                  for d in C.EDUCATION)
-    return f"""<section class="hero"><div class="wrap">
-<div class="hg"><div class="hl">
-<div class="k"><b>{e(ROLE)}</b><span>{e(C.LOCATION)}</span><span>{e(C.AVAILABILITY)}</span></div>
-<h1 class="name"><span>{e(NAME.split()[0])}</span><span>{e(NAME.split()[1])}</span></h1>
-{ledes}
-<p class="motto">{e(MOTTO)}</p>
-<div class="cta"><a class="btn p" href="contact.html">Book a chat</a><a class="btn" href="#work">See the work</a>
-<a class="btn" href="{C.LINKEDIN}" rel="noopener">LinkedIn \u2197</a></div>
-<div class="tracks"><span class="k">View for</span><div class="seg" role="group" aria-label="Role track">{seg}</div></div>
-</div><figure class="pt hp"><img src="me.webp" width="320" height="320" alt="Portrait of {e(NAME)}" decoding="async" fetchpriority="high"></figure></div>
-{stats}</div></section>
+    edu = "".join(f'<li>{e(d["degree"])}<span>{e(d["school"])}, {e(d["meta"].replace(" | ", ", "))}</span></li>' for d in C.EDUCATION)
+    first, last = NAME.split()[0], NAME.split()[1]
+    return f"""<div class="split">
+<aside class="stage" aria-label="Portrait, and the figure or place for whatever you are reading">{stage_panes()}</aside>
+<div class="read">
+<section class="hero" id="top">
+<h1 data-rise style="--i:0">{e(first)} {e(last)}</h1>
+<p class="role" data-rise style="--i:1">{e(ROLE)} for clinical and financial data.</p>
+<p class="where" data-rise style="--i:2">{e(C.LOCATION)}. {e(C.AVAILABILITY)}.</p>
+<div data-rise style="--i:3">{ledes}</div>
+<p class="motto" data-rise style="--i:4">{e(MOTTO)}</p>
+<div class="cta" data-rise style="--i:5"><a class="btn p" href="contact.html">Book a chat</a><a class="btn" href="ask.html">Ask my record</a><a class="btn" href="{C.LINKEDIN}" rel="noopener">LinkedIn</a></div>
+<div class="tracks" data-rise style="--i:6"><span>See the work for</span><div class="seg" role="group" aria-label="Role track">{seg}</div></div>
+</section>
 
-<section id="work"><div class="wrap"><div class="sh"><span class="k">Selected work</span>
-<h2>Eight projects, each with the number it produced.</h2>
-<p>Pick a role track above and the evidence reorders itself. Open any card for the full case.</p></div>
-<div class="grid" id="grid">{grid}</div></div></section>
+<section id="work"><h2 class="sh w" data-reveal>Eight projects, each with its number.</h2>
+<p data-reveal>Choose a role track above and the projects reorder. Pick any project to see its numbers.</p>
+<ol class="works" id="grid">{works}</ol></section>
 
-<section id="results"><div class="wrap"><div class="sh"><span class="k">Measured outcomes</span>
-<h2>Results, drawn to scale.</h2><p>Every bar is a number from the record, on one shared scale per chart.</p></div>
-<div class="dash">{panels}</div></div></section>
+<section id="experience"><h2 class="sh" data-reveal>Roles, as written.</h2>
+<div class="xp">{xp}</div></section>
+</div></div>
 
-<section id="stack"><div class="wrap"><div class="sh"><span class="k">Where the skills show up</span>
-<h2>Skills, counted rather than claimed.</h2>
-<p>Each cell is the number of resume bullets in that project or role that mention the area. Computed from the text, not self-rated.</p></div>
+<section class="full" id="results"><div class="in sb">
+<div><h2 class="sh w" data-reveal>Where Med-Qwen wins and loses.</h2>
+<p class="mut" data-reveal>Pick a model to compare it with. Same six benchmarks, same zero-shot setup.</p>
+<div class="pick" id="pick" role="group" aria-label="Compare Med-Qwen with" hidden></div>
+<p class="verdict" id="verdict" aria-live="polite">{mq_verdict()}</p></div>
+<div data-reveal>{mq_table()}</div></div></section>
+
+<section class="full" id="stack"><div class="in">
+<h2 class="sh w" data-reveal>Skills, counted rather than claimed.</h2>
+<p class="mut" data-reveal style="margin-bottom:30px">Each bar is the number of resume bullets that mention the area, computed from the text and not self-rated.</p>
 <ul class="tools" aria-label="Tools used across the work">{tools}</ul>
-<div class="scroll" style="margin-top:22px">{matrix_svg()}</div>
-<p class="cap">A darker cell means more bullets. Retrieval and evaluation run through most of the work; fine-tuning is concentrated in one project and the 4.2B model behind it.</p>
-</div></section>
+<ul class="sk">{skills_list()}</ul></div></section>
 
-<section id="experience"><div class="wrap"><div class="sh"><span class="k">Experience</span>
-<h2>Roles, every bullet as written.</h2></div>{xp}</div></section>
+<section class="full" id="more"><div class="in names">
+<div data-reveal><h3>Papers</h3><ul>{pubs}</ul></div>
+<div data-reveal><h3>Education</h3><ul>{edu}</ul></div>
+<div data-reveal><h3>Recognition</h3><ul>{hon}</ul></div></div></section>
 
-<section id="more"><div class="wrap two">
-<div><div class="sh"><span class="k">Publications</span><h2>{["Zero","One","Two","Three","Four"][len(C.PUBLICATIONS)]} papers.</h2></div><ul class="rows">{pubs}</ul>
-<div class="sh" style="margin-top:clamp(32px,4vw,56px)"><span class="k">Education</span><h2>Where I studied.</h2></div><ul class="rows">{edu}</ul></div>
-<div><div class="sh"><span class="k">Recognition</span><h2>And a few more.</h2></div><ul class="hons">{hon}</ul></div></div></section>"""
+<section class="visit" id="contact"><img src="places/houston.webp" width="1500" height="502" alt="{e(PLACES['houston'][2])}" loading="lazy" decoding="async">
+<div class="card" data-reveal><h2>Let’s talk.</h2>
+<p>I am based in {e(C.LOCATION)} and {e(C.AVAILABILITY.lower())}. Tell me about the role or the project and I will reply.</p>
+<a class="mail" href="{MAIL}">{e(C.EMAIL)}</a>
+<div class="links"><a href="{C.LINKEDIN}" rel="noopener">LinkedIn</a><a href="{C.GITHUB}" rel="noopener">GitHub</a><a href="{C.ARXIV}" rel="noopener">arXiv</a></div>
+<a class="btn p" href="contact.html">Book a chat</a></div></section>"""
 
 
 def case(i):
@@ -534,24 +591,25 @@ def case(i):
     trk = "".join(f"<li>{e(tmap[t])}</li>" for t in en["tracks"].split())
     tags = "".join(f"<li>{''.join(ic(s, n) for s, n in icons_in(t)[:1])}{e(t)}</li>" for t in en["tags"])
     bl = "".join(f"<li>{fmt(b)}</li>" for b in en["bullets"])
-    link = (f'<a class="btn" href="{_linkify(en["url"])}" rel="noopener">View project ↗</a>'
-            if en["url"] else "")
-    pn = ((f'<a class="btn" href="{prev_["slug"]}">← {e(prev_["title"])}</a>') if prev_ else
-          '<a class="btn" href="index.html#work">← All work</a>')
-    pn += (f'<a class="btn" href="{next_["slug"]}">{e(next_["title"])} →</a>' if next_ else
-           '<a class="btn" href="contact.html">Get in touch →</a>')
-    body = f"""<section class="case" style="border:0"><div class="wrap">
-<div class="crumb mono"><span>Case {e(en["n"])} / 0{len(ENTRIES)} · {e(en["kicker"])}</span><span>{e(en["year"])} · {e(en["source"])}</span></div>
-<h1>{e(en["title"])}</h1>
-<div class="bigm"><b>{e(en["metric"])}</b><span>{e(en["metric_note"])}</span></div>
-<div class="cols"><div><span class="k">What I built</span><ul class="b" style="margin-top:14px">{bl}</ul>
-<p class="cap">{fmt(en["line"])}</p><div class="cta">{link}</div></div>
-<div><div class="scroll" style="padding:18px">{en["chart"]}</div>
-<span class="k" style="display:block;margin-top:22px">Stack</span><ul class="chips" style="margin-top:10px">{tags}</ul>
-<span class="k" style="display:block;margin-top:22px">Relevant to</span><ul class="chips" style="margin-top:10px">{trk}</ul></div></div>
-{mq_table() if en["n"] == "01" else ""}
-<div class="pn">{pn}</div></div></section>"""
-    return shell(f'{en["title"]} — {NAME}', en["metric"] + " — " + en["metric_note"], body)
+    link = (f'<a class="btn p" href="{_linkify(en["url"])}" rel="noopener">View project</a>' if en["url"] else "")
+    pn = ((f'<a class="btn" href="{prev_["slug"]}">Previous: {e(prev_["title"])}</a>') if prev_ else
+          '<a class="btn" href="index.html#work">All work</a>')
+    pn += (f'<a class="btn" href="{next_["slug"]}">Next: {e(next_["title"])}</a>' if next_ else
+           '<a class="btn p" href="contact.html">Get in touch</a>')
+    src = f'{e(en["year"])}' + (f', {e(en["source"])}' if en["source"] else "")
+    body = f"""<div class="page">
+<div class="top">
+<div><h1 data-rise>{e(en["title"])}</h1>
+<p class="sub" data-rise style="--i:1">{e(en["kicker"])}, {src}</p>
+<div class="bigm" data-rise style="--i:2"><b>{e(en["metric"])}</b><span>{e(en["metric_note"])}</span></div></div>
+<div class="fig" data-rise style="--i:3">{en["chart"]}</div></div>
+<div class="cols"><div><h3 data-reveal>What I built</h3><ul class="b">{"".join(f'<li data-reveal>{fmt(b)}</li>' for b in en["bullets"])}</ul>
+<p class="cap" data-reveal>{fmt(en["line"])}</p><div class="cta" data-reveal>{link}</div></div>
+<div><h3 data-reveal>Stack</h3><ul class="chips" data-reveal>{tags}</ul>
+<h3 data-reveal>Relevant to</h3><ul class="chips" data-reveal>{trk}</ul></div></div>
+{('<div style="margin-top:clamp(48px,6vw,88px)" data-reveal><h2 class="sh w">The full comparison.</h2>' + mq_table() + '</div>') if en["n"] == "01" else ""}
+<div class="pn" data-reveal>{pn}</div></div>"""
+    return shell(f'{en["title"]} — {NAME}', en["metric"] + " — " + en["metric_note"], body, bodycls=' class="sub"')
 
 
 HOW_STEPS = [   # (title, lines) for the example question "What did he do at EMMA AI?"
@@ -574,8 +632,8 @@ def how_svg(vertical=False):
         x, y = (15, 24 + i * (bh + gap)) if vertical else (24 + i * (bw + gap), 28)
         pos.append((x, y))
         g = [f'<g class="hs" opacity=".35"><animate attributeName="opacity" values=".35;1;1;.35;.35" keyTimes="0;0.04;0.14;0.19;1" dur="7.5s" begin="{1.5 * i - 0.3:.1f}s" repeatCount="indefinite"/>',
-             f'<rect class="hb" x="{x}" y="{y}" width="{bw}" height="{bh}" rx="14"/>',
-             f'<text class="ht" x="{x + 14}" y="{y + 22}">{i + 1:02d} \u00b7 {e(title.upper())}</text>']
+             f'<rect class="hb" x="{x}" y="{y}" width="{bw}" height="{bh}" />',
+             f'<text class="ht" x="{x + 14}" y="{y + 24}">{i + 1}. {e(title)}</text>']
         if not lines:
             g.append(f'<text class="hl sm" x="{x + 14}" y="{y + bh - 10}">similarity</text>')
         if lines:
@@ -585,8 +643,8 @@ def how_svg(vertical=False):
         else:                                   # cosine bars: the winner is the accent colour
             for k, (sc, win) in enumerate(((0.57, True), (0.21, False), (0.11, False))):
                 yy = y + 40 + k * 26
-                g.append(f'<rect class="hbt" x="{x + 14}" y="{yy}" width="{bw - 28}" height="10" rx="5"/>'
-                         f'<rect class="hbar{" win" if win else ""}" x="{x + 14}" y="{yy}" width="{(bw - 28) * sc / 0.62:.1f}" height="10" rx="5"/>'
+                g.append(f'<rect class="hbt" x="{x + 14}" y="{yy}" width="{bw - 28}" height="10"/>'
+                         f'<rect class="hbar{" win" if win else ""}" x="{x + 14}" y="{yy}" width="{(bw - 28) * sc / 0.62:.1f}" height="10"/>'
                          )
         g.append("</g>")
         out.append("".join(g))
@@ -614,12 +672,10 @@ def how_svg(vertical=False):
 def page_ask():
     data = ask_data()
     n_sec = len(data["sections"]); n_lines = sum(len(s["chunks"]) for s in data["sections"])
-    return f"""<section class="head"><div class="wrap askn">
-<span class="k">Ask my record</span>
-<h1 class="askh">Ask about my work.</h1>
-<p class="lede" style="max-width:60ch">Ask about my projects, results, roles or papers, or which of my work fits a fintech, healthtech or AI engineering role.</p></div></section>
-<section style="padding-top:0;border:0"><div class="wrap askn">
-<div class="hwbar"><button class="hwb" id="hwb" type="button" aria-expanded="false" aria-controls="hwp">How it works <i aria-hidden="true">\u25be</i></button></div>
+    return f"""<div class="page"><div class="askn">
+<h1 data-rise>Ask about my work.</h1>
+<p class="intro s" data-rise style="--i:1">Ask about my projects, results, roles or papers, or which of my work fits a role.</p>
+<div class="hwbar"><button class="hwb" id="hwb" type="button" aria-expanded="false" aria-controls="hwp">How it works <i aria-hidden="true">▾</i></button></div>
 <div class="hwp" id="hwp" hidden><div class="hwd" aria-hidden="false"><div class="dw">{how_svg(False)}</div><div class="mw">{how_svg(True)}</div></div>
 <ol>
 <li><b>Chunk.</b> My record is cut into {words_of(n_sec)} sections, one per project, role or topic, split into {words_of(n_lines)} short lines. Each section carries metadata: project, organisation, year, domain, topics and tools.</li>
@@ -628,20 +684,18 @@ def page_ask():
 <p class="cap">It refuses anything outside my record, such as coding help or general questions. It was checked on fifty-six questions I wrote; every set was used to tune it, so treat that as a regression check, not a blind test. With this panel open, each answer also shows its similarity score and metadata tags. <a class="ln" href="how-it-works.gif" download>Download this diagram as a GIF</a>.</p></div>
 <div class="askp" id="askp"><div class="thread" id="thread" aria-live="polite"></div>
 <div class="starts" id="starts" aria-label="Suggested questions"></div>
-<form id="askf" class="askf"><input id="askq" type="text" maxlength="300" autocomplete="off" placeholder="Ask about EMMA AI, Med-Qwen, Value Global, fintech work\u2026" aria-label="Your question"><button type="submit">Ask</button></form></div>
-</div></section>"""
+<form id="askf" class="askf"><input id="askq" type="text" maxlength="300" autocomplete="off" placeholder="Ask about EMMA AI, Med-Qwen, Value Global, fintech work…" aria-label="Your question"><button type="submit">Ask</button></form></div>
+</div></div>"""
 
 
 FORM_ENDPOINT = "https://formsubmit.co/ajax/" + C.EMAIL      # FormSubmit: free, no account; first message needs a one-time confirmation
 
 
 def page_contact():
-    return f"""<section class="head"><div class="wrap">
-<span class="k">Book a chat</span>
-<h1 class="askh">Let\u2019s talk.</h1>
-<p class="lede" style="max-width:60ch">Tell me who you are and what you have in mind: a role, a project, a question about my work.
-Your message goes straight to my inbox and I reply to the email you give.</p></div></section>
-<section style="padding-top:0;border:0"><div class="wrap askw">
+    return f"""<div class="page">
+<h1 data-rise>Let’s talk.</h1>
+<p class="intro s" data-rise style="--i:1">Tell me who you are and what you have in mind: a role, a project, a question about my work. Your message goes straight to my inbox and I reply to the email you give.</p>
+<div class="askw" style="margin-top:clamp(34px,5vw,64px)">
 <div class="cfw"><form id="cf" action="{FORM_ENDPOINT}" method="post" novalidate>
 <div class="fr"><label for="cn">Your name</label><input id="cn" name="name" type="text" autocomplete="name" maxlength="120" required></div>
 <div class="fr"><label for="ce">Your email</label><input id="ce" name="email" type="email" autocomplete="email" maxlength="200" required></div>
@@ -652,12 +706,10 @@ Your message goes straight to my inbox and I reply to the email you give.</p></d
 <button class="btn p" type="submit">Send message</button>
 <p id="cmsg" class="cmsg" role="status" aria-live="polite"></p></form>
 <div id="cdone" class="cdone" tabindex="-1" hidden><h2>Message sent.</h2><p>Thank you. I will reply to the email you gave.</p>
-<p><a class="btn" href="index.html">Back to the portfolio</a></p></div></div>
-<aside class="how"><span class="k">Or reach me directly</span>
-<ul class="rows" style="margin-top:14px"><li><a href="{MAIL}"><b>{e(C.EMAIL)}</b><span>Email \u2197</span></a></li>
-<li><a href="{C.LINKEDIN}" rel="noopener"><b>LinkedIn</b><span>Message me there \u2197</span></a></li>
-<li><a href="{C.GITHUB}" rel="noopener"><b>GitHub</b><span>adi274903 \u2197</span></a></li></ul>
-<p class="cap">The form sends your message by email through FormSubmit. Nothing is stored on this site. Based in {e(C.LOCATION)}; {e(C.AVAILABILITY.lower())}.</p></aside></div></section>"""
+<p style="margin-top:18px"><a class="btn" href="index.html">Back to the portfolio</a></p></div></div>
+<aside class="how"><h3>Or reach me directly</h3>
+<div class="direct"><a href="{MAIL}">{e(C.EMAIL)}</a><a href="{C.LINKEDIN}" rel="noopener">LinkedIn</a><a href="{C.GITHUB}" rel="noopener">GitHub</a></div>
+<p class="cap">The form sends your message by email through FormSubmit. Nothing is stored on this site. Based in {e(C.LOCATION)}; {e(C.AVAILABILITY.lower())}.</p></aside></div></div>"""
 
 
 def build():
@@ -674,15 +726,21 @@ def build():
     (DIST / "how-it-works.gif").write_bytes((HERE / "src/assets/how-it-works.gif").read_bytes()) if (HERE / "src/assets/how-it-works.gif").exists() else None
     (DIST / "icons.svg").write_text((HERE / "src/assets/icons.svg").read_text())
     (DIST / "me.webp").write_bytes((HERE / "src/assets/me.webp").read_bytes())
+    for sub in ("fonts", "places"):
+        shutil.rmtree(DIST / sub, ignore_errors=True)
+        (DIST / sub).mkdir(exist_ok=True)
+        for f in (HERE / "src/assets" / sub).iterdir():
+            if f.suffix in (".woff2", ".webp"):
+                (DIST / sub / f.name).write_bytes(f.read_bytes())
     (DIST / "app.js").write_text((HERE / "src/app.js").read_text())
     (DIST / "ask.js").write_text((HERE / "src/ask.js").read_text())
     (DIST / "contact.js").write_text((HERE / "src/contact.js").read_text())
-    (DIST / "contact.html").write_text(shell(f"Book a chat \u2014 {NAME}", "Send Aditya a message: name, email, subject and message.", page_contact(), page="contact.html", extra_js=f'<script src="contact.js?v={VER}" defer></script>'))
-    (DIST / "ask.html").write_text(shell(f"Ask my record \u2014 {NAME}", "Ask about Aditya\u2019s projects, results and experience. Answers are quoted from his record by cosine similarity, with no AI model.", page_ask(), page="ask.html", fab=False, extra_js=f'<script src="engine.js?v={VER}" defer></script><script src="ask.js?v={VER}" defer></script>'))
+    (DIST / "contact.html").write_text(shell(f"Book a chat \u2014 {NAME}", "Send Aditya a message: name, email, subject and message.", page_contact(), page="contact.html", bodycls=' class="sub"', extra_js=f'<script src="contact.js?v={VER}" defer></script>'))
+    (DIST / "ask.html").write_text(shell(f"Ask my record \u2014 {NAME}", "Ask about Aditya\u2019s projects, results and experience. Answers are quoted from his record by cosine similarity, with no AI model.", page_ask(), page="ask.html", fab=False, bodycls=' class="sub"', extra_js=f'<script src="engine.js?v={VER}" defer></script><script src="ask.js?v={VER}" defer></script>'))
     (DIST / "index.html").write_text(shell(
         f"{NAME} — {ROLE}",
         "AI engineer for clinical and financial data: production RAG, governed agents, "
-        "evaluation and fine-tuning, each with the number it produced.", home()))
+        "evaluation and fine-tuning, each with the number it produced.", home(), credits=True, bodycls=' class="home"'))
     for i, en in enumerate(ENTRIES):
         (DIST / en["slug"]).write_text(case(i))
 
@@ -693,6 +751,7 @@ def audit():
     for p in sorted(DIST.glob("*.html")):
         h = p.read_text()
         h = re.sub(r"<(script|style)[^>]*>.*?</\1>", " ", h, flags=re.S)
+        h = re.sub(r'<p class="cr"[^>]*>.*?</p>', " ", h, flags=re.S)       # third-party photo credits
         text = re.sub(r"<[^>]+>", " ", h)
         for t in C.RETIRED:
             if t in text:
