@@ -202,7 +202,8 @@ def ask_data():
     import sections as SEC
     LIST = {"get_publications", "get_recognition", "get_education", "get_skills", "get_summary"}
     LINKS = {
-        "get_med_qwen": [{"label": "Model on Hugging Face", "href": "https://huggingface.co/adi274903/Med-Qwen-3.5-4B-Instruct"}],
+        "get_med_qwen": [{"label": "Latest model (with RLVR) on Hugging Face", "href": "https://huggingface.co/adi274903/Med-Qwen-3.5-4B-it"},
+                         {"label": "Earlier release (Instruct) on Hugging Face", "href": "https://huggingface.co/adi274903/Med-Qwen-3.5-4B-Instruct"}],
         "get_learning_portal": [{"label": "Project on GitHub", "href": "https://github.com/adi274903/NLX_Assignment3"}],
         "get_publications": [{"label": p["venue"], "href": p["url"]} for p in C.PUBLICATIONS],
         "get_recognition": [{"label": "11-785 leaderboard", "href": "https://www.kaggle.com/competitions/11785-hw-2-p-2-face-verification-spring-2025/leaderboard"},
@@ -244,7 +245,8 @@ def ask_data():
 # ---------------------------------------------------------------------- entries
 def _chart_for(n, w=CH.W):
     if n == "01":
-        return mq_score()
+        return mq_score() + '<div class="rl">' + CH.delta("reasoning tokens per answer (MedQA)", 456, 66, "456 (SFT)", "66 (RLVR)",
+                                     note="same MedQA accuracy: 73.2% SFT, 73.5% RLVR; my own evaluation harness", w=w) + "</div>"
     if n == "__old01":
         return CH.hbars("Med-Qwen-3.5-4B-Instruct · zero-shot greedy", [
             ("PubMedQA · base", 45.60, "45.60", False),
@@ -293,7 +295,7 @@ for c in S.CARDS:
                                   "05": "Pricing", "06": "Value Global"}[c["n"]]))
 tr = {"01": "ai health", "02": "ai health", "03": "ai", "04": "ai health",
       "05": "ai health", "06": "ai"}
-bul = {"01": C.PROJECTS[0]["bullets"], "02": [C.EMMA_PRINT], "03": C.PROJECTS[2]["bullets"],
+bul = {"01": C.PROJECTS[0]["bullets"] + ["Cut medical reasoning length about 7x (456 to 66 tokens) at matching MedQA accuracy by training a GRPO RLVR adapter on Qwen3.5-4B with rule-based accuracy, format and length rewards."], "02": [C.EMMA_PRINT], "03": C.PROJECTS[2]["bullets"],
        "04": C.EXPERIENCE[1]["bullets"][:2], "05": C.EXPERIENCE[1]["bullets"][3:4],
        "06": C.EXPERIENCE[0]["bullets"]}
 src = {"01": (C.PROJECTS[0]["meta"], C.PROJECTS[0]["url"]), "02": (C.PROJECTS[1]["meta"], ""),
@@ -304,6 +306,8 @@ src = {"01": (C.PROJECTS[0]["meta"], C.PROJECTS[0]["url"]), "02": (C.PROJECTS[1]
 for en in ENTRIES:
     n = en["n"]
     en.update(tracks=tr[n], bullets=bul[n], source=src[n][0], url=src[n][1])
+    if n == "01":
+        en["url"] = "https://huggingface.co/adi274903/Med-Qwen-3.5-4B-it"      # latest release, trained with RLVR
     if n == "02":   # the physician surveys measured the answers (source of +25%); the student survey is app feedback
         en["line"] = ("Rebuilt retrieval over a 20-context corpus on GCP with Gemini and pgvector. Two physician "
                       "surveys measured the answers, and 48 students surveyed the app.")
@@ -423,7 +427,7 @@ def shell(title, desc, body, depth_attr="", page="index", extra_js="", fab=True,
 
 
 BLURB = {
-    "01": "A small clinical reasoning model that beats MedGemma on every clinical benchmark I tested. I continued pretraining Qwen3.5 on medical text, then fine-tuned it with DoRA on a mix of clinical reasoning data, and published it on Hugging Face.",
+    "01": "A small clinical reasoning model that beats MedGemma on every clinical benchmark I tested. I continued pretraining Qwen3.5 on medical text, then fine-tuned it with DoRA on a mix of clinical reasoning data, and published it on Hugging Face. A later stage trained it with reinforcement learning on rule-based rewards (GRPO), which cut its reasoning about sevenfold at the same MedQA accuracy.",
     "02": "I rebuilt the retrieval behind a clinical education podcast platform so residents get more accurate, more complete answers, using Gemini and pgvector on GCP. Physicians rated the answers, and students surveyed the app.",
     "03": "A research assistant that pulls from six scholarly sources. I benchmarked open models against Claude on Deep Research Bench and showed that abstract-only retrieval is what limits it.",
     "04": "At CMU I built an evaluation pipeline that turns thousands of full-text papers into schema-bound records. Two extractor models, a DeepSeek judge and a human verifier keep the results consistent from run to run.",
@@ -472,7 +476,7 @@ def mq_table():
             f'<thead><tr>{head}</tr></thead><tbody>{body}</tbody></table></div>'
             f'<p class="cap">PubMedQA, MedQA (USMLE 4-option), GPQA Diamond, MedMCQA, MMLU Med aggregate and AfriMed-QA. '
             f'Zero-shot, greedy inference with normalized choice log-probabilities. '
-            f'Source: <a class="ln" href="https://huggingface.co/adi274903/Med-Qwen-3.5-4B-Instruct" rel="noopener">the published model card</a>.</p>')
+            f'Source: <a class="ln" href="https://huggingface.co/adi274903/Med-Qwen-3.5-4B-Instruct" rel="noopener">model card of the Med-Qwen-3.5-4B-Instruct release</a>. The latest model, trained further with RLVR, is <a class="ln" href="https://huggingface.co/adi274903/Med-Qwen-3.5-4B-it" rel="noopener">Med-Qwen-3.5-4B-it</a>.</p>')
 
 
 def mq_verdict():
