@@ -52,7 +52,7 @@ pick();
 var cmp=d.getElementById("cmp"),pk=d.getElementById("pick"),vd=d.getElementById("verdict");
 if(cmp&&pk){
  var heads=$("thead th",cmp),rows=$("tbody tr",cmp);
- var opts=[["all","All models"],["1","Its base model"],["3",heads[3].textContent],["4",heads[4].textContent]];
+ var opts=[["all","All models"],["1",heads[2].textContent],["3",heads[3].textContent],["4",heads[4].textContent]];
  function sel(v){
   cmp.dataset.sel=v;
   $("button",pk).forEach(function(b){b.setAttribute("aria-pressed",b.dataset.v===v)});
@@ -64,7 +64,7 @@ if(cmp&&pk){
    if(v!=="all"){if(vals[2]>vals[v])won++;else lost.push($("th",r)[0].textContent)}
   });
   if(v==="all"){vd.innerHTML=vd.dataset.all}
-  else{var nm=opts.filter(function(o){return o[0]===v})[0][1];vd.innerHTML="Med-Qwen beats "+(v==="1"?"its base model":nm)+" on <em>"+won+" of "+rows.length+"</em> benchmarks."+(lost.length?" It trails on "+lost.join(", ")+".":"")}
+  else{var nm=opts.filter(function(o){return o[0]===v})[0][1];vd.innerHTML="Med-Qwen beats "+nm+" on <em>"+won+" of "+rows.length+"</em> benchmarks."+(lost.length?" It trails on "+lost.join(", ")+".":"")}
  }
  vd.dataset.all=vd.innerHTML;
  opts.forEach(function(o){var b=d.createElement("button");b.type="button";b.dataset.v=o[0];b.textContent=o[1];b.onclick=function(){sel(o[0])};pk.appendChild(b)});

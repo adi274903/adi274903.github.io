@@ -36,23 +36,23 @@ _BODY = C.THESIS.split(" - ", 1)[1].split(" Optimization")[0]
 SUMMARY = _BODY[0].upper() + _BODY[1:]          # GT summary without its role title and motto, verbatim
 MOTTO = C.THESIS[C.THESIS.index("Optimization"):]
 LEDE = {      # one plain-language summary per track; every figure is a GT3 number
-    "ai": "I build and evaluate AI systems for clinical and financial data. Recently: a 4.2B clinical model that "
-          "beat MedGemma-1.5-4B-it on all six benchmarks, an agentic retrieval prototype cut from ~8 seconds to 2, "
+    "ai": "I build and evaluate AI systems for clinical and financial data. Recently: a 4B clinical model that "
+          "beat MedGemma-1.5-4B on all five benchmarks I ran, an agentic retrieval prototype cut from ~8 seconds to 2, "
           "and an evaluation pipeline with zero run-to-run skew.",
     "fintech": "Credit-bureau reporting cut from 3 days to 2 hours at Tata Capital and a fraud-identification "
                "model at 0.86 F1 at Jocata, backed by production RAG and LLM evaluation.",
-    "health": "I build and evaluate AI for clinical settings: a 4.2B clinical model that beat MedGemma-1.5-4B-it on "
-              "all six benchmarks, physician-rated RAG accuracy up 25% in EMMA, and a pricing agent that lifted "
+    "health": "I build and evaluate AI for clinical settings: a 4B clinical model that beat MedGemma-1.5-4B on "
+              "all five benchmarks I ran, physician-rated RAG accuracy up 25% in EMMA, and a pricing agent that lifted "
               "CPT/HCPCS code selection from 82% to 91%.",
 }
 STATS = {
     "ai": [("~8s → 2s", "retrieval time over ~1,000 chemical safety data sheets"),
-           ("66.20", "PubMedQA for Med-Qwen, vs 45.60 for its base"),
+           ("73.5%", "MedQA for Med-Qwen at 66 tokens per answer"),
            ("97/100", "documents with all PII removed"),
            ("82% → 91%", "CPT/HCPCS code selection")],
     "fintech": [("3 days → 2 hours", "credit-bureau submission prep, Tata Capital"),
                 ("0.86", "F1 for fraud identification, Jocata")],
-    "health": [("66.20", "PubMedQA for Med-Qwen, vs 45.60 for its base"),
+    "health": [("73.5%", "MedQA for Med-Qwen at 66 tokens per answer"),
                ("+25%", "physician-rated accuracy + completeness, EMMA"),
                ("17,167", "schema-bound evaluation records"),
                ("82% → 91%", "CPT/HCPCS code selection")],
@@ -145,13 +145,12 @@ def honor(h):
 
 # ------------------------------------------------------------ Med-Qwen comparison (GT3, model card)
 MQ_HEAD, MQ_ROWS = gt.medqwen_table()
-_NAMES = {"Qwen3.5-4B-Base": "its base", "MedGemma-1.5-4B-it": "MedGemma-1.5-4B-it", "Gemma-4-E4B-it": "Gemma-4-E4B-it"}
 
 
 def mq_wins():
-    """Out of the six benchmarks, how many does Med-Qwen beat each other model on? Derived from the table."""
+    """Out of the five benchmarks, how many does Med-Qwen beat each other model on? Derived from the table."""
     out = []
-    for col, name in ((3, "MedGemma-1.5-4B-it"), (4, "Gemma-4-E4B-it"), (1, "its base, Qwen3.5-4B-Base")):
+    for col, name in ((3, "MedGemma-1.5-4B"), (4, "Gemma-4-E4B"), (1, "Qwen3.5-4B")):
         won = [float(r[2]) > float(r[col]) for r in MQ_ROWS]
         out.append((name, won))
     return out
@@ -166,7 +165,7 @@ def mq_score():
         f'<div class="vr"><span class="vn">{e(n)}</span><span class="cells" aria-hidden="true">'
         + "".join(f'<i class="{"w" if w else "l"}"></i>' for w in won)
         + f'</span><b>{sum(won)}/{len(won)}</b></div>' for n, won in mq_wins())
-    return (f'<div class="vs" role="group" aria-label="Med-Qwen wins out of six benchmarks, per comparison model">'
+    return (f'<div class="vs" role="group" aria-label="Med-Qwen wins out of five benchmarks, per comparison model">'
             f'<span class="k">Wins out of {len(MQ_ROWS)} benchmarks</span>{rows}</div>')
 
 
@@ -202,8 +201,7 @@ def ask_data():
     import sections as SEC
     LIST = {"get_publications", "get_recognition", "get_education", "get_skills", "get_summary"}
     LINKS = {
-        "get_med_qwen": [{"label": "Latest model (with RLVR) on Hugging Face", "href": "https://huggingface.co/adi274903/Med-Qwen-3.5-4B-it"},
-                         {"label": "Earlier release (Instruct) on Hugging Face", "href": "https://huggingface.co/adi274903/Med-Qwen-3.5-4B-Instruct"}],
+        "get_med_qwen": [{"label": "Model on Hugging Face", "href": "https://huggingface.co/adi274903/Med-Qwen-3.5-4B-it"}],
         "get_learning_portal": [{"label": "Project on GitHub", "href": "https://github.com/adi274903/NLX_Assignment3"}],
         "get_publications": [{"label": p["venue"], "href": p["url"]} for p in C.PUBLICATIONS],
         "get_recognition": [{"label": "11-785 leaderboard", "href": "https://www.kaggle.com/competitions/11785-hw-2-p-2-face-verification-spring-2025/leaderboard"},
@@ -247,14 +245,6 @@ def _chart_for(n, w=CH.W):
     if n == "01":
         return mq_score() + '<div class="rl">' + CH.delta("reasoning tokens per answer (MedQA)", 456, 66, "456 (SFT)", "66 (RLVR)",
                                      note="same MedQA accuracy: 73.2% SFT, 73.5% RLVR; my own evaluation harness", w=w) + "</div>"
-    if n == "__old01":
-        return CH.hbars("Med-Qwen-3.5-4B-Instruct · zero-shot greedy", [
-            ("PubMedQA · base", 45.60, "45.60", False),
-            ("PubMedQA · Med-Qwen", 66.20, "66.20", True),
-            ("MMLU Med", 80.72, "80.72", False), ("MedQA", 67.95, "67.95", False),
-            ("AfriMed-QA", 64.80, "64.80", False), ("GPQA Diamond", 50.51, "50.51", False),
-            ("MedMCQA", 33.20, "33.20", False)], maxv=100,
-            note="base = Qwen3.5-4B-Base", label="Med-Qwen benchmark scores", w=w)
     if n == "02":
         return CH.hbars("EMMA \u00b7 evidence base", [
             ("students surveyed", 48, "48", True), ("20 contexts", 20, "20", False),
@@ -295,7 +285,9 @@ for c in S.CARDS:
                                   "05": "Pricing", "06": "Value Global"}[c["n"]]))
 tr = {"01": "ai health", "02": "ai health", "03": "ai", "04": "ai health",
       "05": "ai health", "06": "ai"}
-bul = {"01": C.PROJECTS[0]["bullets"] + ["Cut medical reasoning length about 7x (456 to 66 tokens) at matching MedQA accuracy by training a GRPO RLVR adapter on Qwen3.5-4B with rule-based accuracy, format and length rewards."], "02": [C.EMMA_PRINT], "03": C.PROJECTS[2]["bullets"],
+bul = {"01": ["Built Med-Qwen-3.5-4B-it in three stages on Qwen3.5-4B-Base: domain-adaptive pretraining, supervised fine-tuning and reinforcement learning with verifiable rewards (GRPO), released as one merged checkpoint on Hugging Face.",
+                  "Scored 73.5% on MedQA (USMLE) and 75.2% on PubMedQA at about 66 generated tokens per answer, where the other recent small models in the comparison need 750 to 4,100 tokens for similar MedQA accuracy.",
+                  "Cut medical reasoning length about 7x (456 to 66 tokens) at matching MedQA accuracy by training a GRPO RLVR adapter on Qwen3.5-4B with rule-based accuracy, format and length rewards."], "02": [C.EMMA_PRINT], "03": C.PROJECTS[2]["bullets"],
        "04": C.EXPERIENCE[1]["bullets"][:2], "05": C.EXPERIENCE[1]["bullets"][3:4],
        "06": C.EXPERIENCE[0]["bullets"]}
 src = {"01": (C.PROJECTS[0]["meta"], C.PROJECTS[0]["url"]), "02": (C.PROJECTS[1]["meta"], ""),
@@ -427,7 +419,7 @@ def shell(title, desc, body, depth_attr="", page="index", extra_js="", fab=True,
 
 
 BLURB = {
-    "01": "A small clinical reasoning model that beats MedGemma on every clinical benchmark I tested. I continued pretraining Qwen3.5 on medical text, then fine-tuned it with DoRA on a mix of clinical reasoning data, and published it on Hugging Face. A later stage trained it with reinforcement learning on rule-based rewards (GRPO), which cut its reasoning about sevenfold at the same MedQA accuracy.",
+    "01": "A small clinical reasoning model that beats MedGemma on all five benchmarks I ran. I continued pretraining Qwen3.5 on medical text, fine-tuned it on clinical reasoning data, then trained it with reinforcement learning on rule-based rewards (GRPO), which cut its reasoning about sevenfold at the same MedQA accuracy. It is published on Hugging Face.",
     "02": "I rebuilt the retrieval behind a clinical education podcast platform so residents get more accurate, more complete answers, using Gemini and pgvector on GCP. Physicians rated the answers, and students surveyed the app.",
     "03": "A research assistant that pulls from six scholarly sources. I benchmarked open models against Claude on Deep Research Bench and showed that abstract-only retrieval is what limits it.",
     "04": "At CMU I built an evaluation pipeline that turns thousands of full-text papers into schema-bound records. Two extractor models, a DeepSeek judge and a human verifier keep the results consistent from run to run.",
@@ -474,16 +466,19 @@ def mq_table():
         body += f'<tr><th scope="row">{e(r[0])}</th>{tds}</tr>'
     return (f'<div class="tblw"><table class="cmp" id="cmp" data-sel="all">'
             f'<thead><tr>{head}</tr></thead><tbody>{body}</tbody></table></div>'
-            f'<p class="cap">PubMedQA, MedQA (USMLE 4-option), GPQA Diamond, MedMCQA, MMLU Med aggregate and AfriMed-QA. '
-            f'Zero-shot, greedy inference with normalized choice log-probabilities. '
-            f'Source: <a class="ln" href="https://huggingface.co/adi274903/Med-Qwen-3.5-4B-Instruct" rel="noopener">model card of the Med-Qwen-3.5-4B-Instruct release</a>. The latest model, trained further with RLVR, is <a class="ln" href="https://huggingface.co/adi274903/Med-Qwen-3.5-4B-it" rel="noopener">Med-Qwen-3.5-4B-it</a>.</p>')
+            f'<p class="cap">MedQA (USMLE 4-option), PubMedQA, MedMCQA, GPQA Diamond and MMLU Med (four subjects). '
+            f'Generative evaluation: each model reasons, then answers, with greedy decoding, one shared prompt and parser, in my own harness. '
+            f'Most differences sit inside the 95% confidence intervals, so near-ties are ties, and GPQA Diamond favours models that answer briefly. '
+            f'Benchmark overlap: 0.03% of the RLVR prompt pool matched a benchmark question verbatim; the SFT and DAPT data were not fully audited. '
+            f'Source: <a class="ln" href="https://huggingface.co/adi274903/Med-Qwen-3.5-4B-it" rel="noopener">the Med-Qwen-3.5-4B-it model card</a>.</p>')
 
 
 def mq_verdict():
     w = {n: sum(won) for n, won in mq_wins()}
     k = list(w.items())
-    return (f"Med-Qwen beats MedGemma-1.5-4B-it on <em>{words_of(k[0][1])} of six</em> benchmarks and Gemma-4-E4B-it on "
-            f"<em>{words_of(k[1][1])} of six</em>. It trails its own base model on three.")
+    return (f"Med-Qwen beats MedGemma-1.5-4B on <em>{words_of(k[0][1])} of five</em> benchmarks, Qwen3.5-4B on "
+            f"<em>{words_of(k[2][1])} of five</em>, and Gemma-4-E4B on <em>{words_of(k[1][1])} of five</em>. "
+            f"It does so in about 66 generated tokens per answer.")
 
 
 def skills_list():
@@ -563,7 +558,7 @@ def home():
 
 <section class="full" id="results"><div class="in sb">
 <div><h2 class="sh w" data-reveal>Where Med-Qwen wins and loses.</h2>
-<p class="mut" data-reveal>Pick a model to compare it with. Same six benchmarks, same zero-shot setup.</p>
+<p class="mut" data-reveal>Pick a model to compare it with. Same five benchmarks, same generative setup.</p>
 <div class="pick" id="pick" role="group" aria-label="Compare Med-Qwen with" hidden></div>
 <p class="verdict" id="verdict" aria-live="polite">{mq_verdict()}</p></div>
 <div data-reveal>{mq_table()}</div></div></section>
