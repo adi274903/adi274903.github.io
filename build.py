@@ -202,7 +202,7 @@ def ask_data():
     LIST = {"get_publications", "get_recognition", "get_education", "get_skills", "get_summary"}
     LINKS = {
         "get_med_qwen": [{"label": "Model on Hugging Face", "href": "https://huggingface.co/adi274903/Med-Qwen-3.5-4B-it"}],
-        "get_emma": [{"label": "App code on GitHub", "href": "https://github.com/adi274903/emma-ai-clinical-education"}],
+        "get_emma": [{"label": "App code on GitHub", "href": "https://github.com/adi274903/EMMA_AI_Accessible"}],
         "get_learning_portal": [{"label": "Project on GitHub", "href": "https://github.com/adi274903/NLX_Assignment3"}],
         "get_publications": [{"label": p["venue"], "href": p["url"]} for p in C.PUBLICATIONS],
         "get_recognition": [{"label": "11-785 leaderboard", "href": "https://www.kaggle.com/competitions/11785-hw-2-p-2-face-verification-spring-2025/leaderboard"},
@@ -291,7 +291,7 @@ bul = {"01": ["Built Med-Qwen-3.5-4B-it in three stages on Qwen3.5-4B-Base: doma
                   "Cut medical reasoning length about 7x (456 to 66 tokens) at matching MedQA accuracy by training a GRPO RLVR adapter on Qwen3.5-4B with rule-based accuracy, format and length rewards."], "02": [C.EMMA_PRINT], "03": C.PROJECTS[2]["bullets"],
        "04": C.EXPERIENCE[1]["bullets"][:2], "05": C.EXPERIENCE[1]["bullets"][3:4],
        "06": C.EXPERIENCE[0]["bullets"]}
-src = {"01": (C.PROJECTS[0]["meta"], C.PROJECTS[0]["url"]), "02": (C.PROJECTS[1]["meta"], "https://github.com/adi274903/emma-ai-clinical-education"),
+src = {"01": (C.PROJECTS[0]["meta"], C.PROJECTS[0]["url"]), "02": (C.PROJECTS[1]["meta"], "https://github.com/adi274903/EMMA_AI_Accessible"),
        "03": (C.PROJECTS[2]["meta"], C.PROJECTS[2]["url"]),
        "04": ("Carnegie Mellon University, NIST-AIMSEC", ""),
        "05": ("Carnegie Mellon University, NIST-AIMSEC", ""),
