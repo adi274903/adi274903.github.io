@@ -203,7 +203,8 @@ def ask_data():
     LINKS = {
         "get_med_qwen": [{"label": "Model on Hugging Face", "href": "https://huggingface.co/adi274903/Med-Qwen-3.5-4B-it"}],
         "get_emma": [{"label": "App code on GitHub", "href": "https://github.com/adi274903/EMMA_AI_Accessible"}],
-        "get_robot_arm": [{"label": "Project on GitHub (my branch)", "href": "https://github.com/rgupta1111/Robot48hrs/tree/adi_1"}],
+        "get_robot_arm": [{"label": "Project on GitHub (my branch)", "href": "https://github.com/rgupta1111/Robot48hrs/tree/adi_1"},
+                          {"label": "Demo video (Google Drive)", "href": "https://drive.google.com/file/d/1Q7dwn_tRNeO0iJD7J3-1OeN8daDyMX5G/view?usp=sharing"}],
         "get_researchdroid": [{"label": "Project on GitHub", "href": "https://github.com/adi274903/researchdroid"}],
         "get_learning_portal": [{"label": "Project on GitHub", "href": "https://github.com/adi274903/NLX_Assignment3"}],
         "get_publications": [{"label": p["venue"], "href": p["url"]} for p in C.PUBLICATIONS],
@@ -343,7 +344,8 @@ ENTRIES.append(dict(
     bullets=["Built a Viam robot-arm pick-and-hand-over system at a 48-hour hackathon: YOLO and a depth camera locate a cup or bottle, Viam's motion service re-plans short collision-aware moves each step, the arm pauses when a person is close, and every run is logged to MongoDB with a failure class (9 of 24 logged live runs lifted the object).",
              "The arm hands the object over only after the operator presses Yes on a web control page, STOP is a clean stop, and the gripper, which has no force limit, closes by position to a width set per object (cup 70 mm, bottle 45 mm).",
              "Of the 24 live runs logged on the last day, 9 lifted the object (bottle 4 of 6, cup 5 of 18); the other 15 were 9 operator stops, 3 errors and 3 other failures. These were mostly tuning runs, not a benchmark."],
-    source="Robot48hrs hackathon project", url="https://github.com/rgupta1111/Robot48hrs/tree/adi_1"))
+    source="Robot48hrs hackathon project", url="https://github.com/rgupta1111/Robot48hrs/tree/adi_1",
+    video="https://drive.google.com/file/d/1Q7dwn_tRNeO0iJD7J3-1OeN8daDyMX5G/view?usp=sharing"))
 for en in ENTRIES:
     en["chart"] = (_chart_for(en["n"]) if en["n"] == "01" else
                    f'<div class="dw">{_chart_for(en["n"])}</div><div class="mw">{_chart_for(en["n"], 360)}</div>')
@@ -623,6 +625,7 @@ def case(i):
     tags = "".join(f"<li>{''.join(ic(s, n) for s, n in icons_in(t)[:1])}{e(t)}</li>" for t in en["tags"])
     bl = "".join(f"<li>{fmt(b)}</li>" for b in en["bullets"])
     link = (f'<a class="btn p" href="{_linkify(en["url"])}" rel="noopener">View project</a>' if en["url"] else "")
+    link += (f'<a class="btn" href="{en["video"]}" rel="noopener">Watch the demo video</a>' if en.get("video") else "")
     pn = ((f'<a class="btn" href="{prev_["slug"]}">Previous: {e(prev_["title"])}</a>') if prev_ else
           '<a class="btn" href="index.html#work">All work</a>')
     pn += (f'<a class="btn" href="{next_["slug"]}">Next: {e(next_["title"])}</a>' if next_ else
