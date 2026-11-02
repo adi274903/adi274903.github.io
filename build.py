@@ -175,16 +175,16 @@ def words_of(n):
 
 # ------------------------------------------------------------ deterministic Q&A data (TF-IDF built in the browser)
 ENTRY_OF = {"get_med_qwen": "01", "get_emma": "02", "get_learning_portal": "03", "get_cmu_evaluation": "04",
-            "get_pricing_agent": "05", "get_value_global": "06", "get_tata_capital": "07", "get_jocata": "08"}
+            "get_pricing_agent": "05", "get_value_global": "06", "get_tata_capital": "07", "get_jocata": "08", "get_researchdroid": "09"}
 KIND_OF = {"get_value_global": "role", "get_cmu_evaluation": "research", "get_cmu_paper": "research", "get_pricing_agent": "research",
            "get_stealth_startup": "role", "get_tata_capital": "role", "get_jocata": "role", "get_med_qwen": "project", "get_emma": "project",
-           "get_learning_portal": "project", "get_publications": "papers", "get_recognition": "honors", "get_education": "education",
+           "get_learning_portal": "project", "get_researchdroid": "project", "get_publications": "papers", "get_recognition": "honors", "get_education": "education",
            "get_skills": "skills", "get_summary": "overview"}
 ORG_OF = {"get_value_global": "Value Global LLC", "get_cmu_evaluation": "Carnegie Mellon University, NIST-AIMSEC", "get_cmu_paper": "Carnegie Mellon University",
           "get_pricing_agent": "Carnegie Mellon University, NIST-AIMSEC", "get_stealth_startup": "Stealth Startup", "get_tata_capital": "Tata Capital",
-          "get_jocata": "Jocata Financial Advisory", "get_emma": "Allegheny Health Network", "get_education": "Carnegie Mellon University, REVA University"}
+          "get_jocata": "Jocata Financial Advisory", "get_researchdroid": "Distributed Systems course project", "get_emma": "Allegheny Health Network", "get_education": "Carnegie Mellon University, REVA University"}
 YEAR_OF = {"get_value_global": "2026", "get_cmu_evaluation": "2025", "get_cmu_paper": "2025", "get_pricing_agent": "2025", "get_stealth_startup": "2025",
-           "get_tata_capital": "2024", "get_jocata": "2023", "get_med_qwen": "2026", "get_emma": "2025", "get_learning_portal": "2025"}
+           "get_tata_capital": "2024", "get_jocata": "2023", "get_med_qwen": "2026", "get_emma": "2025", "get_learning_portal": "2025", "get_researchdroid": "2025"}
 DOMAINS_EXTRA = {"get_stealth_startup": ["ai"], "get_cmu_paper": ["health", "ai"], "get_publications": [], "get_summary": ["ai"]}
 FACETS = {   # question words -> facet; authored routing vocabulary, never shown as facts
     "domain": {"fintech": ["fintech", "finance", "financial", "bank", "banking", "credit", "fraud", "payments", "lending", "loan"],
@@ -203,6 +203,7 @@ def ask_data():
     LINKS = {
         "get_med_qwen": [{"label": "Model on Hugging Face", "href": "https://huggingface.co/adi274903/Med-Qwen-3.5-4B-it"}],
         "get_emma": [{"label": "App code on GitHub", "href": "https://github.com/adi274903/EMMA_AI_Accessible"}],
+        "get_researchdroid": [{"label": "Project on GitHub", "href": "https://github.com/adi274903/researchdroid"}],
         "get_learning_portal": [{"label": "Project on GitHub", "href": "https://github.com/adi274903/NLX_Assignment3"}],
         "get_publications": [{"label": p["venue"], "href": p["url"]} for p in C.PUBLICATIONS],
         "get_recognition": [{"label": "11-785 leaderboard", "href": "https://www.kaggle.com/competitions/11785-hw-2-p-2-face-verification-spring-2025/leaderboard"},
@@ -271,6 +272,11 @@ def _chart_for(n, w=CH.W):
     if n == "07":
         return CH.delta("credit-bureau submission prep (hours)", 72, 2, "3 days", "2 hours",
                         note="3 days drawn as 72 hours, to scale", w=w)
+    if n == "09":
+        return CH.hbars("ResearchDroid · per request", [
+            ("papers per search", 5, "5", False), ("summary sentences per paper", 2, "2", False),
+            ("fields logged per request", 7, "7", True)], maxv=10,
+            note="every request is logged and shown on a dashboard", label="ResearchDroid per-request figures", w=w)
     if n == "08":
         return CH.hbars("fraud identification · F1", [("F1", 0.86, "0.86", True)],
                         maxv=1, note="scale 0 to 1", w=w)
@@ -315,6 +321,14 @@ for n, ex, key, kick in (("07", C.TATA, "3 days → 2 hours", "Credit reporting"
         else ["XGBoost", "SpaCy NER", "REST APIs"],
         tracks="fintech ai" if n == "08" else "fintech", bullets=ex["bullets"],
         source=f'{ex["org"]} · {ex["meta"]}', url=""))
+ENTRIES.append(dict(
+    n="09", label="ResearchDroid", year="2025", kicker="Distributed systems", title="ResearchDroid",
+    metric="3 tiers", metric_note="Android client, Java servlet on Tomcat, MongoDB Atlas, with the arXiv API behind it",
+    line="An Android app and a Java servlet that search arXiv, summarize each abstract and log every request for a dashboard.",
+    tags=["Java", "Android Studio", "Docker", "MongoDB Atlas"], tracks="ai",
+    bullets=["Built a three-tier arXiv search system for a CMU Distributed Systems course: an Android client calls a Java servlet on Tomcat (WAR, Docker) that queries the arXiv API and summarizes abstracts with a custom extractive summarizer, logging each request to MongoDB Atlas for a dashboard of request count, average latency and top search term.",
+             "Limits, as stated in the repository: a single servlet service rather than a set of separate services, a word-frequency summarizer rather than a model, only request logs stored, and no deployed instance."],
+    source="Carnegie Mellon University, Distributed Systems course", url="https://github.com/adi274903/researchdroid"))
 for en in ENTRIES:
     en["chart"] = (_chart_for(en["n"]) if en["n"] == "01" else
                    f'<div class="dw">{_chart_for(en["n"])}</div><div class="mw">{_chart_for(en["n"], 360)}</div>')
@@ -329,7 +343,7 @@ CONCEPTS = [
     ("Data engineering", r"SQL|PySpark|Databricks|SAS|pipeline|preprocess"),
     ("Classical ML & NLP", r"XGBoost|SpaCy|\bNER\b|NLP"),
 ]
-MCOLS = [(en["label"], en["bullets"]) for en in ENTRIES] + [("Stealth", C.STEALTH["bullets"])]
+MCOLS = [(en["label"], en["bullets"]) for en in ENTRIES if en["n"] != "09"] + [("Stealth", C.STEALTH["bullets"])]   # the skills matrix is about the AI and data work
 
 
 def matrix_svg():
@@ -428,6 +442,7 @@ BLURB = {
     "06": "At Value Global I built an agentic proof of concept for chemical safety data sheets, combining vector search with graph traversal. I also built governed MCP tool access to Oracle ERP.",
     "07": "I moved legacy SAS credit-bureau reporting onto Databricks PySpark with automated tests, turning a multi-day manual prep into a short automated run.",
     "08": "An NLP pipeline that flags fraud in text messages and cost data, using XGBoost and SpaCy entity recognition, served through REST APIs.",
+    "09": "A distributed-systems course project: an Android app and a Java servlet that search arXiv, summarize each abstract with a simple extractive summarizer, and log every request to MongoDB for a dashboard of requests, latency and top searches.",
 }
 
 
@@ -549,7 +564,7 @@ def home():
 <div class="tracks" data-rise style="--i:6"><span>See the work for</span><div class="seg" role="group" aria-label="Role track">{seg}</div></div>
 </section>
 
-<section id="work"><h2 class="sh w" data-reveal>Eight projects, each with its number.</h2>
+<section id="work"><h2 class="sh w" data-reveal>Nine projects, each with its number.</h2>
 <p data-reveal>Choose a role track above and the projects reorder. Pick any project to see its numbers.</p>
 <ol class="works" id="grid">{works}</ol></section>
 
