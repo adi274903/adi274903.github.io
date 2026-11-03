@@ -376,7 +376,7 @@ CONCEPTS = [
     ("Data engineering", r"SQL|PySpark|Databricks|SAS|pipeline|preprocess"),
     ("Classical ML & NLP", r"XGBoost|SpaCy|\bNER\b|NLP"),
 ]
-MCOLS = [(en["label"], en["bullets"]) for en in ENTRIES if en["n"] not in ("09", "10", "11")] + [("Stealth", C.STEALTH["bullets"])]   # the skills matrix is about the AI and data work
+MCOLS = [(en["label"], en["bullets"]) for en in ENTRIES if en["n"] not in ("09", "10")] + [("Stealth", C.STEALTH["bullets"])]   # the skills matrix is about the AI and data work
 
 
 def matrix_svg():
