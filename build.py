@@ -507,6 +507,31 @@ def work_row(en):
             f'<div class="wa"><button class="show" type="button">Show numbers</button><a href="{en["slug"]}">Case study</a></div></li>')
 
 
+HIGHLIGHTS = [   # (entry number, one line on why it matters, external link label, external link) - presentation only, no new numbers
+    ("01", "A full post-training pipeline, released on Hugging Face, with a contamination audit and an honest comparison table.",
+     "Model on Hugging Face", "https://huggingface.co/adi274903/Med-Qwen-3.5-4B-it"),
+    ("12", "Trained from scratch on one GPU and written up as a study: throughput, ablations, and what failed.",
+     "Training study on GitHub", "https://github.com/adi274903/ncm-omni/blob/main/STUDY.md"),
+    ("04", "Research-scale evaluation with an LLM judge and a human verifier, behind a paper on arXiv.",
+     "Paper on arXiv", C.ARXIV),
+    ("11", "A nine-service system with an evaluation harness that includes a random-vector control.",
+     "Project on GitHub", "https://github.com/adi274903/MARS-Healthcare"),
+]
+
+
+def highlights():
+    cards = []
+    for n, why, lab, href in HIGHLIGHTS:
+        en = next(x for x in ENTRIES if x["n"] == n)
+        cards.append(f'<li><a class="ht" href="{en["slug"]}">{e(en["title"])}</a>'
+                     f'<span class="hm"><b>{e(en["metric"])}</b> {e(en["metric_note"])}</span>'
+                     f'<p>{e(why)}</p>'
+                     f'<div class="ha"><a href="{en["slug"]}">Case study</a><a href="{href}" rel="noopener">{e(lab)}</a></div></li>')
+    return ('<section id="highlights"><h2 class="sh" data-reveal>Start with these four.</h2>'
+            '<p data-reveal>The strongest evidence: post-training, training from scratch, evaluation research and systems.</p>'
+            f'<ol class="hl">{"".join(cards)}</ol></section>')
+
+
 def stage_panes():
     out = ['<div class="pane me on" data-pane="me"><figure><img src="me.webp" width="640" height="640" '
            f'alt="Portrait of {e(NAME)}" decoding="async" fetchpriority="high">'
@@ -613,6 +638,8 @@ def home():
 <div class="cta" data-rise style="--i:5"><a class="btn p" href="contact.html">Book a chat</a><a class="btn" href="ask.html">Ask my record</a><a class="btn" href="{C.LINKEDIN}" rel="noopener">LinkedIn</a></div>
 <div class="tracks" data-rise style="--i:6"><span>See the work for</span><div class="seg" role="group" aria-label="Role track">{seg}</div></div>
 </section>
+
+{highlights()}
 
 <section id="work"><h2 class="sh w" data-reveal>Twelve projects, each with its number.</h2>
 <p data-reveal>Choose a role track above and the projects reorder. Pick any project to see its numbers.</p>

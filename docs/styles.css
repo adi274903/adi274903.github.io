@@ -367,3 +367,15 @@ a.ln:hover,.cap a:hover,.prose a:hover{text-decoration-thickness:.14em}
 @media(min-width:2400px){html{font-size:150%}}
 @media(min-width:3200px){html{font-size:200%}}
 .rl{margin-top:1.25rem}
+
+/* highlights: the four strongest projects, above the full list */
+#highlights{margin-bottom:clamp(48px,6vw,88px)}
+.hl{list-style:none;margin:0;padding:0;display:grid;gap:clamp(22px,2.4vw,32px);grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr))}
+.hl li{border-top:2px solid var(--accent);padding-top:18px}
+.hl .ht{display:block;font:400 clamp(1.3rem,1.1rem + .8vw,1.75rem)/1.12 var(--f-head);letter-spacing:-.015em;color:var(--ink);text-decoration:none;text-wrap:balance}
+.hl .ht:hover,.hl .ht:focus-visible{color:var(--accent)}
+.hl .hm{display:block;margin-top:10px;font-size:var(--s-small);color:var(--muted)}
+.hl .hm b{color:var(--ink);font-weight:600;margin-right:6px}
+.hl p{margin-top:12px;max-width:46ch}
+.hl .ha{display:flex;flex-wrap:wrap;gap:8px 24px;margin-top:14px;font-size:var(--s-small)}
+.hl .ha a{color:var(--accent);text-underline-offset:.22em}
