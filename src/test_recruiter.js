@@ -6,7 +6,7 @@ const T = [
  ["Can you give me a quick summary of his background?", "get_summary|tracks", ""],
  ["What roles has he held?", "tracks", "Value Global"],
  ["What's his current role?", "get_value_global", "Value Global"],
- ["Where is he based and is he open to relocation?", "Contact", "relocate"],
+ ["Where is he based and is he open to relocation?", "Contact", "San Francisco"],
  ["Does he need visa sponsorship?", "decline|Contact", "only answer|reach Aditya"],
  ["What is his salary expectation?", "decline|Contact", "only answer|reach Aditya"],
  ["When can he start?", "decline|Contact", "only answer|reach Aditya"],

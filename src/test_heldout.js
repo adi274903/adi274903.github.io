@@ -16,7 +16,7 @@ const T = [
  ["What papers has he written about plant phenotyping?", "get_publications", "Phenotyping"],
  ["Tell me about the Sorensen Dice contribution", "get_cmu_paper", "Sorensen"],
  ["What models did NIST AIMSEC use as judge?", "get_cmu_evaluation", "DeepSeek"],
- ["Is he open to moving?", "Contact", "relocat"],
+ ["Is he open to moving?", "Contact", "San Francisco"],
  ["What is Jocata?", "get_jocata", "fraud"],
  ["Give me a recipe for pasta", "decline", "only answer"],
  ["Who is the president of the US?", "decline", "only answer"],

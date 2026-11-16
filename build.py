@@ -175,16 +175,16 @@ def words_of(n):
 
 # ------------------------------------------------------------ deterministic Q&A data (TF-IDF built in the browser)
 ENTRY_OF = {"get_med_qwen": "01", "get_emma": "02", "get_learning_portal": "03", "get_cmu_evaluation": "04",
-            "get_pricing_agent": "05", "get_value_global": "06", "get_tata_capital": "07", "get_jocata": "08", "get_researchdroid": "09", "get_robot_arm": "10", "get_mars": "11"}
+            "get_pricing_agent": "05", "get_value_global": "06", "get_tata_capital": "07", "get_jocata": "08", "get_researchdroid": "09", "get_robot_arm": "10", "get_mars": "11", "get_ncm": "12"}
 KIND_OF = {"get_value_global": "role", "get_cmu_evaluation": "research", "get_cmu_paper": "research", "get_pricing_agent": "research",
            "get_stealth_startup": "role", "get_tata_capital": "role", "get_jocata": "role", "get_med_qwen": "project", "get_emma": "project",
-           "get_learning_portal": "project", "get_researchdroid": "project", "get_robot_arm": "project", "get_mars": "project", "get_publications": "papers", "get_recognition": "honors", "get_education": "education",
+           "get_learning_portal": "project", "get_researchdroid": "project", "get_robot_arm": "project", "get_mars": "project", "get_ncm": "project", "get_publications": "papers", "get_recognition": "honors", "get_education": "education",
            "get_skills": "skills", "get_summary": "overview"}
 ORG_OF = {"get_value_global": "Value Global LLC", "get_cmu_evaluation": "Carnegie Mellon University, NIST-AIMSEC", "get_cmu_paper": "Carnegie Mellon University",
           "get_pricing_agent": "Carnegie Mellon University, NIST-AIMSEC", "get_stealth_startup": "Stealth Startup", "get_tata_capital": "Tata Capital",
-          "get_jocata": "Jocata Financial Advisory", "get_researchdroid": "Distributed Systems course project", "get_robot_arm": "Robot48hrs hackathon", "get_mars": "MARS-Healthcare project", "get_emma": "Allegheny Health Network", "get_education": "Carnegie Mellon University, REVA University"}
+          "get_jocata": "Jocata Financial Advisory", "get_researchdroid": "Distributed Systems course project", "get_robot_arm": "Robot48hrs hackathon", "get_mars": "MARS-Healthcare project", "get_ncm": "NCM-MoE training study", "get_emma": "Allegheny Health Network", "get_education": "Carnegie Mellon University, REVA University"}
 YEAR_OF = {"get_value_global": "2026", "get_cmu_evaluation": "2025", "get_cmu_paper": "2025", "get_pricing_agent": "2025", "get_stealth_startup": "2025",
-           "get_tata_capital": "2024", "get_jocata": "2023", "get_med_qwen": "2026", "get_emma": "2025", "get_learning_portal": "2025", "get_researchdroid": "2025", "get_robot_arm": "2026", "get_mars": "2026"}
+           "get_tata_capital": "2024", "get_jocata": "2023", "get_med_qwen": "2026", "get_emma": "2025", "get_learning_portal": "2025", "get_researchdroid": "2025", "get_robot_arm": "2026", "get_mars": "2026", "get_ncm": "2026"}
 DOMAINS_EXTRA = {"get_stealth_startup": ["ai"], "get_cmu_paper": ["health", "ai"], "get_publications": [], "get_summary": ["ai"]}
 FACETS = {   # question words -> facet; authored routing vocabulary, never shown as facts
     "domain": {"fintech": ["fintech", "finance", "financial", "bank", "banking", "credit", "fraud", "payments", "lending", "loan"],
@@ -207,6 +207,7 @@ def ask_data():
                           {"label": "Demo video (Google Drive)", "href": "https://drive.google.com/file/d/1Q7dwn_tRNeO0iJD7J3-1OeN8daDyMX5G/view?usp=sharing"}],
         "get_researchdroid": [{"label": "Project on GitHub", "href": "https://github.com/adi274903/researchdroid"}],
         "get_mars": [{"label": "Project on GitHub", "href": "https://github.com/adi274903/MARS-Healthcare"}],
+        "get_ncm": [{"label": "Training study on GitHub", "href": "https://github.com/adi274903/ncm-omni/blob/main/STUDY.md"}],
         "get_learning_portal": [{"label": "Project on GitHub", "href": "https://github.com/adi274903/NLX_Assignment3"}],
         "get_publications": [{"label": p["venue"], "href": p["url"]} for p in C.PUBLICATIONS],
         "get_recognition": [{"label": "11-785 leaderboard", "href": "https://www.kaggle.com/competitions/11785-hw-2-p-2-face-verification-spring-2025/leaderboard"},
@@ -275,6 +276,12 @@ def _chart_for(n, w=CH.W):
     if n == "07":
         return CH.delta("credit-bureau submission prep (hours)", 72, 2, "3 days", "2 hours",
                         note="3 days drawn as 72 hours, to scale", w=w)
+    if n == "12":
+        return CH.hbars("NCM-MoE · held-out CE at the end of the run (lower is better)", [
+            ("text, model", 3.34, "3.34", True), ("text, baseline", 4.90, "4.90", False),
+            ("image, model", 1.76, "1.76", True), ("image, baseline", 4.12, "4.12", False),
+            ("audio, model", 1.78, "1.78", False), ("audio, baseline", 2.52, "2.52", False)], maxv=5.5,
+            note="audio overfit: held-out CE rose from 1.52 at step 753 to 1.78", label="NCM-MoE held-out cross-entropy", w=w)
     if n == "11":
         return CH.hbars("MARS-Healthcare · MRR@8 on 40 faceted questions", [
             ("hybrid, 8 answer slots", 0.85, "0.850", True), ("hybrid, depth 20", 0.963, "0.963", False),
@@ -362,6 +369,13 @@ ENTRIES.append(dict(
              "Limits, as measured: the graph leg added nothing on this suite, BM25 scored 1.000 only because the gold is built from the same filters, no semantic or human-judged result exists, and the corpus fields are LLM extraction records, not ground truth.",
              "An Azure migration is designed, not deployed: Container Apps, Azure OpenAI in Azure AI Foundry, Managed Redis and Key Vault, with a phased move to Azure AI Search."],
     source="Personal project", url="https://github.com/adi274903/MARS-Healthcare"))
+ENTRIES.append(dict(
+    n="12", label="NCM-MoE", year="2026", kicker="Training study", title="NCM-MoE Omni training study",
+    metric="170 TFLOPS", metric_note="sustained on one RTX PRO 6000 over a 2B-code run; MFU about 34% against an assumed peak",
+    line="A from-scratch 1.68B sparse mixture-of-experts over text, image and audio codes on one GPU, published as a training study: throughput, ablations, and the audio overfit.",
+    tags=["PyTorch", "Mixture-of-Experts", "DAC", "DINOv2"], tracks="ai",
+    bullets=['Trained a from-scratch 1.68B sparse mixture-of-experts (about 364M active per token, 6 experts) on text, image and audio codes on one RTX PRO 6000, sustaining about 170 TFLOPS (about 65k codes/s) over a 2,006-step, 2B-code run.', "Cut the audio codec's cost by switching DAC from 44.1 kHz to 16 kHz: encode time per micro-batch fell from 0.690 to 0.262 seconds and throughput rose from 145 to 170 TFLOPS.", 'Text and image learned (held-out CE 3.34 and 1.76 against baselines of 4.90 and 4.12); audio overfit, with training CE 1.001 against held-out 1.775 and held-out audio CE rising from 1.52 at step 753 to 1.78.', 'Published as a training study, not a model: MFU about 34% against an assumed 500 TFLOPS peak, the single-factor ablations, what broke, and what I would change with 8 GPUs. No weights are released.'],
+    source="Personal project", url="https://github.com/adi274903/ncm-omni/blob/main/STUDY.md"))
 for en in ENTRIES:
     en["chart"] = (_chart_for(en["n"]) if en["n"] == "01" else
                    f'<div class="dw">{_chart_for(en["n"])}</div><div class="mw">{_chart_for(en["n"], 360)}</div>')
@@ -376,7 +390,7 @@ CONCEPTS = [
     ("Data engineering", r"SQL|PySpark|Databricks|SAS|pipeline|preprocess"),
     ("Classical ML & NLP", r"XGBoost|SpaCy|\bNER\b|NLP"),
 ]
-MCOLS = [(en["label"], en["bullets"]) for en in ENTRIES if en["n"] not in ("09", "10")] + [("Stealth", C.STEALTH["bullets"])]   # the skills matrix is about the AI and data work
+MCOLS = [(en["label"], en["bullets"]) for en in ENTRIES if en["n"] not in ("09", "10", "12")] + [("Stealth", C.STEALTH["bullets"])]   # the skills matrix is about the AI and data work
 
 
 def matrix_svg():
@@ -476,6 +490,7 @@ BLURB = {
     "07": "I moved legacy SAS credit-bureau reporting onto Databricks PySpark with automated tests, turning a multi-day manual prep into a short automated run.",
     "08": "An NLP pipeline that flags fraud in text messages and cost data, using XGBoost and SpaCy entity recognition, served through REST APIs.",
     "10": "A 48-hour hackathon build: a robot arm that finds a cup or bottle with a depth camera and a YOLO detector, plans short collision-aware moves through Viam, pauses when a person is close, and hands the object over only after a person presses Yes. Every run is logged to MongoDB with a failure class.",
+    "12": "A from-scratch sparse mixture-of-experts over text, image and audio, trained on one GPU at about 170 TFLOPS and written up as a training study: what was measured, the ablations, and why audio overfit.",
     "11": "A healthcare-AI evaluation assistant: nine event-driven services, hybrid retrieval over 15,954 records, streamed answers with cited sources, and a retrieval harness whose random-vector control scores zero. An Azure migration is designed, not deployed.",
     "09": "A distributed-systems course project: an Android app and a Java servlet that search arXiv, summarize each abstract with a simple extractive summarizer, and log every request to MongoDB for a dashboard of requests, latency and top searches.",
 }
@@ -599,7 +614,7 @@ def home():
 <div class="tracks" data-rise style="--i:6"><span>See the work for</span><div class="seg" role="group" aria-label="Role track">{seg}</div></div>
 </section>
 
-<section id="work"><h2 class="sh w" data-reveal>Eleven projects, each with its number.</h2>
+<section id="work"><h2 class="sh w" data-reveal>Twelve projects, each with its number.</h2>
 <p data-reveal>Choose a role track above and the projects reorder. Pick any project to see its numbers.</p>
 <ol class="works" id="grid">{works}</ol></section>
 

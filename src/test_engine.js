@@ -26,7 +26,7 @@ const T = [
  ["What languages does he know?", "get_skills", "Python"],
  ["Who is Aditya?", "get_summary", "Machine Learning Engineer"],
  ["What is your email address?", "Contact", "asannabh@alumni.cmu.edu"],
- ["Is Aditya willing to relocate?", "Contact", "relocate"],
+ ["Is Aditya willing to relocate?", "Contact", "San Francisco"],
  ["Write me a python function to sort a list", "decline", "only answer"],
  ["Can you debug my javascript code?", "decline", "only answer"],
  ["What is 17 * 23?", "decline", "only answer"],
