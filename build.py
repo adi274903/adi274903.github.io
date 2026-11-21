@@ -35,15 +35,18 @@ TRACKS = [("all", "All"), ("ai", "AI engineer"), ("fintech", "Fintech"), ("healt
 _BODY = C.THESIS.split(" - ", 1)[1].split(" Optimization")[0]
 SUMMARY = _BODY[0].upper() + _BODY[1:]          # GT summary without its role title and motto, verbatim
 MOTTO = C.THESIS[C.THESIS.index("Optimization"):]
-LEDE = {      # one plain-language summary per track; every figure is a GT3 number
-    "ai": "I build and evaluate AI systems for clinical and financial data. Recently: a 4B clinical model that "
-          "beat MedGemma-1.5-4B on all five benchmarks I ran, an agentic retrieval prototype cut from ~8 seconds to 2, "
-          "and an evaluation pipeline with zero run-to-run skew.",
-    "fintech": "Credit-bureau reporting cut from 3 days to 2 hours at Tata Capital and a fraud-identification "
-               "model at 0.86 F1 at Jocata, backed by production RAG and LLM evaluation.",
-    "health": "I build and evaluate AI for clinical settings: a 4B clinical model that beat MedGemma-1.5-4B on "
-              "all five benchmarks I ran, physician-rated RAG accuracy up 25% in EMMA, and a pricing agent that lifted "
-              "CPT/HCPCS code selection from 82% to 91%.",
+LEDE = {      # one plain-language summary per track; no metrics (Adi 2026-11-21), the cards carry the numbers
+    "ai": "I'm an AI engineer focused on agents, retrieval and healthcare. At Value Global I automate ERP reporting for oil "
+          "and gas clients and created a chemical-safety search tool now used at UPMC via a client. Before that I built LLM "
+          "evaluation pipelines and a patient pricing agent at Carnegie Mellon (NIST-AIMSEC), migrated legacy analytics to "
+          "PySpark at Tata Capital, and co-founded a hardware-validation startup. I also post-trained and released an open "
+          "medical reasoning model.",
+    "fintech": "I automate enterprise reporting: ERP report pulls for oil and gas clients at Value Global, legacy credit-bureau "
+               "reporting moved to PySpark at Tata Capital, an executive KPI dashboard, and a fraud-identification NLP "
+               "pipeline at Jocata.",
+    "health": "I build AI for healthcare: a chemical-safety search tool now used at UPMC via a client, a patient pricing agent "
+              "over UPMC hospitals' price files at Carnegie Mellon, LLM evaluation pipelines with human review, and an open "
+              "medical reasoning model I post-trained and released.",
 }
 STATS = {
     "ai": [("~8s → 2s", "retrieval time over ~1,000 chemical safety data sheets"),
@@ -374,10 +377,10 @@ ENTRIES.append(dict(
     source="Personal project, built at a hackathon and then deployed", url="https://github.com/adi274903/MARS-Inspired-Healthcare", demo="https://adi274903.github.io/MARS-Inspired-Healthcare/"))
 ENTRIES.append(dict(
     n="12", label="NCM-MoE", year="2026", kicker="Training study", title="NCM-MoE Omni training study",
-    metric="170 TFLOPS", metric_note="sustained on one RTX PRO 6000 over a 2B-code run; MFU about 34% against an assumed peak",
-    line="A from-scratch 1.68B sparse mixture-of-experts over text, image and audio codes on one GPU, published as a training study: throughput, ablations, and the audio overfit.",
+    metric="170 TFLOPS", metric_note="sustained on 1 RTX PRO 6000 over a 2B-code run; MFU about 34% against an assumed peak",
+    line="A from-scratch 1.68B sparse mixture-of-experts over text, image and audio codes on 1 GPU, published as a training study: throughput, ablations, and the audio overfit.",
     tags=["PyTorch", "Mixture-of-Experts", "DAC", "DINOv2"], tracks="ai",
-    bullets=['Trained a from-scratch 1.68B sparse mixture-of-experts (about 364M active per token, 6 experts) on text, image and audio codes on one RTX PRO 6000, sustaining about 170 TFLOPS (about 65k codes/s) over a 2,006-step, 2B-code run.', "Cut the audio codec's cost by switching DAC from 44.1 kHz to 16 kHz: encode time per micro-batch fell from 0.690 to 0.262 seconds and throughput rose from 145 to 170 TFLOPS.", 'Text and image learned (held-out CE 3.34 and 1.76 against baselines of 4.90 and 4.12); audio overfit, with training CE 1.001 against held-out 1.775 and held-out audio CE rising from 1.52 at step 753 to 1.78.', 'Published as a training study, not a model: MFU about 34% against an assumed 500 TFLOPS peak, the single-factor ablations, what broke, and what I would change with 8 GPUs. No weights are released.'],
+    bullets=['Trained a from-scratch 1.68B sparse mixture-of-experts (about 364M active per token, 6 experts) on text, image and audio codes on 1 RTX PRO 6000, sustaining about 170 TFLOPS (about 65k codes/s) over a 2,006-step, 2B-code run.', "Cut the audio codec's cost by switching DAC from 44.1 kHz to 16 kHz: encode time per micro-batch fell from 0.690 to 0.262 seconds and throughput rose from 145 to 170 TFLOPS.", 'Text and image learned (held-out CE 3.34 and 1.76 against baselines of 4.90 and 4.12); audio overfit, with training CE 1.001 against held-out 1.775 and held-out audio CE rising from 1.52 at step 753 to 1.78.', 'Published as a training study, not a model: MFU about 34% against an assumed 500 TFLOPS peak, the single-factor ablations, what broke, and what I would change with 8 GPUs. No weights are released.'],
     source="Personal project", url="https://github.com/adi274903/ncm-omni/blob/main/STUDY.md"))
 for en in ENTRIES:
     en["chart"] = (_chart_for(en["n"]) if en["n"] == "01" else
@@ -493,7 +496,7 @@ BLURB = {
     "07": "I moved legacy SAS credit-bureau reporting onto Databricks PySpark with automated tests, turning a multi-day manual prep into a short automated run.",
     "08": "An NLP pipeline that flags fraud in text messages and cost data, using XGBoost and SpaCy entity recognition, served through REST APIs.",
     "10": "A 48-hour hackathon build: a robot arm that finds a cup or bottle with a depth camera and a YOLO detector, plans short collision-aware moves through Viam, pauses when a person is close, and hands the object over only after a person presses Yes. Every run is logged to MongoDB with a failure class.",
-    "12": "A from-scratch sparse mixture-of-experts over text, image and audio, trained on one GPU at about 170 TFLOPS and written up as a training study: what was measured, the ablations, and why audio overfit.",
+    "12": "A from-scratch sparse mixture-of-experts over text, image and audio, trained on 1 GPU at about 170 TFLOPS and written up as a training study: what was measured, the ablations, and why audio overfit.",
     "11": "A healthcare-AI evaluation assistant: nine event-driven services, hybrid retrieval over 15,954 records, streamed answers with cited sources, and a retrieval harness whose random-vector control scores zero. An Azure migration is designed, not deployed.",
     "09": "A distributed-systems course project: an Android app and a Java servlet that search arXiv, summarize each abstract with a simple extractive summarizer, and log every request to MongoDB for a dashboard of requests, latency and top searches.",
 }
@@ -513,11 +516,11 @@ def work_row(en):
 HIGHLIGHTS = [   # (entry number, one line on why it matters, external link label, external link) - presentation only, no new numbers
     ("01", "A full post-training pipeline, released on Hugging Face, with a contamination audit and an honest comparison table.",
      "Model on Hugging Face", "https://huggingface.co/adi274903/Med-Qwen-3.5-4B-it"),
-    ("12", "Trained from scratch on one GPU and written up as a study: throughput, ablations, and what failed.",
+    ("12", "Trained from scratch on 1 GPU and written up as a study: throughput, ablations, and what failed.",
      "Training study on GitHub", "https://github.com/adi274903/ncm-omni/blob/main/STUDY.md"),
     ("04", "Research-scale evaluation with an LLM judge and a human verifier, behind a paper on arXiv.",
      "Paper on arXiv", C.ARXIV),
-    ("11", "A nine-service system with an evaluation harness that includes a random-vector control.",
+    ("11", "A 9-service system with an evaluation harness that includes a random-vector control.",
      "Live demo and code", "https://adi274903.github.io/MARS-Inspired-Healthcare/"),
 ]
 
@@ -530,7 +533,7 @@ def highlights():
                      f'<span class="hm"><b>{e(en["metric"])}</b> {e(en["metric_note"])}</span>'
                      f'<p>{e(why)}</p>'
                      f'<div class="ha"><a href="{en["slug"]}">Case study</a><a href="{href}" rel="noopener">{e(lab)}</a></div></li>')
-    return ('<section id="highlights"><h2 class="sh" data-reveal>Start with these four.</h2>'
+    return ('<section id="highlights"><h2 class="sh" data-reveal>Start with these 4.</h2>'
             '<p data-reveal>The strongest evidence: post-training, training from scratch, evaluation research and systems.</p>'
             f'<ol class="hl">{"".join(cards)}</ol></section>')
 
@@ -634,17 +637,16 @@ def home():
 <div class="read">
 <section class="hero" id="top">
 <h1 data-rise style="--i:0">{e(first)} {e(last)}</h1>
-<p class="role" data-rise style="--i:1">{e(ROLE)} for clinical and financial data.</p>
+<p class="role" data-rise style="--i:1">{e(ROLE)} at Value Global.</p>
 <p class="where" data-rise style="--i:2">{e(C.LOCATION)}. {e(C.AVAILABILITY)}.</p>
 <div data-rise style="--i:3">{ledes}</div>
-<p class="motto" data-rise style="--i:4">{e(MOTTO)}</p>
 <div class="cta" data-rise style="--i:5"><a class="btn p" href="contact.html">Book a chat</a><a class="btn" href="ask.html">Ask my record</a><a class="btn" href="{C.LINKEDIN}" rel="noopener">LinkedIn</a></div>
 <div class="tracks" data-rise style="--i:6"><span>See the work for</span><div class="seg" role="group" aria-label="Role track">{seg}</div></div>
 </section>
 
 {highlights()}
 
-<section id="work"><h2 class="sh w" data-reveal>Twelve projects, each with its number.</h2>
+<section id="work"><h2 class="sh w" data-reveal>12 projects, each with its number.</h2>
 <p data-reveal>Choose a role track above and the projects reorder. Pick any project to see its numbers.</p>
 <ol class="works" id="grid">{works}</ol></section>
 
@@ -836,8 +838,8 @@ def build():
     (DIST / "ask.html").write_text(shell(f"Ask my record \u2014 {NAME}", "Ask about Aditya\u2019s projects, results and experience. Answers are quoted from his record by cosine similarity, with no AI model.", page_ask(), page="ask.html", fab=False, bodycls=' class="sub"', extra_js=f'<script src="engine.js?v={VER}" defer></script><script src="ask.js?v={VER}" defer></script>'))
     (DIST / "index.html").write_text(shell(
         f"{NAME} — {ROLE}",
-        "AI engineer for clinical and financial data: production RAG, governed agents, "
-        "evaluation and fine-tuning, each with the number it produced.", home(), credits=True, bodycls=' class="home"'))
+        "AI engineer focused on agents, retrieval and healthcare: production agents, search, "
+        "evaluation and post-training, each with the number it produced.", home(), credits=True, bodycls=' class="home"'))
     for i, en in enumerate(ENTRIES):
         (DIST / en["slug"]).write_text(case(i))
 
