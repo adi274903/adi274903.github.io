@@ -182,7 +182,7 @@ KIND_OF = {"get_value_global": "role", "get_cmu_evaluation": "research", "get_cm
            "get_skills": "skills", "get_summary": "overview"}
 ORG_OF = {"get_value_global": "Value Global LLC", "get_cmu_evaluation": "Carnegie Mellon University, NIST-AIMSEC", "get_cmu_paper": "Carnegie Mellon University",
           "get_pricing_agent": "Carnegie Mellon University, NIST-AIMSEC", "get_stealth_startup": "Stealth Startup", "get_tata_capital": "Tata Capital",
-          "get_jocata": "Jocata Financial Advisory", "get_researchdroid": "Distributed Systems course project", "get_robot_arm": "Robot48hrs hackathon", "get_mars": "MARS-Healthcare project", "get_ncm": "NCM-MoE training study", "get_emma": "Allegheny Health Network", "get_education": "Carnegie Mellon University, REVA University"}
+          "get_jocata": "Jocata Financial Advisory", "get_researchdroid": "Distributed Systems course project", "get_robot_arm": "Robot48hrs hackathon", "get_mars": "MARS-Inspired Healthcare project", "get_ncm": "NCM-MoE training study", "get_emma": "Allegheny Health Network", "get_education": "Carnegie Mellon University, REVA University"}
 YEAR_OF = {"get_value_global": "2026", "get_cmu_evaluation": "2025", "get_cmu_paper": "2025", "get_pricing_agent": "2025", "get_stealth_startup": "2025",
            "get_tata_capital": "2024", "get_jocata": "2023", "get_med_qwen": "2026", "get_emma": "2025", "get_learning_portal": "2025", "get_researchdroid": "2025", "get_robot_arm": "2026", "get_mars": "2026", "get_ncm": "2026"}
 DOMAINS_EXTRA = {"get_stealth_startup": ["ai"], "get_cmu_paper": ["health", "ai"], "get_publications": [], "get_summary": ["ai"]}
@@ -206,7 +206,7 @@ def ask_data():
         "get_robot_arm": [{"label": "Project on GitHub (my branch)", "href": "https://github.com/rgupta1111/Robot48hrs/tree/adi_1"},
                           {"label": "Demo video (Google Drive)", "href": "https://drive.google.com/file/d/1Q7dwn_tRNeO0iJD7J3-1OeN8daDyMX5G/view?usp=sharing"}],
         "get_researchdroid": [{"label": "Project on GitHub", "href": "https://github.com/adi274903/researchdroid"}],
-        "get_mars": [{"label": "Project on GitHub", "href": "https://github.com/adi274903/MARS-Healthcare"}],
+        "get_mars": [{"label": "Live demo", "href": "https://adi274903.github.io/MARS-Inspired-Healthcare/"}, {"label": "Project on GitHub", "href": "https://github.com/adi274903/MARS-Inspired-Healthcare"}],
         "get_ncm": [{"label": "Training study on GitHub", "href": "https://github.com/adi274903/ncm-omni/blob/main/STUDY.md"}],
         "get_learning_portal": [{"label": "Project on GitHub", "href": "https://github.com/adi274903/NLX_Assignment3"}],
         "get_publications": [{"label": p["venue"], "href": p["url"]} for p in C.PUBLICATIONS],
@@ -283,10 +283,11 @@ def _chart_for(n, w=CH.W):
             ("audio, model", 1.78, "1.78", False), ("audio, baseline", 2.52, "2.52", False)], maxv=5.5,
             note="audio overfit: held-out CE rose from 1.52 at step 753 to 1.78", label="NCM-MoE held-out cross-entropy", w=w)
     if n == "11":
-        return CH.hbars("MARS-Healthcare · MRR@8 on 40 faceted questions", [
-            ("hybrid, 8 answer slots", 0.85, "0.850", True), ("hybrid, depth 20", 0.963, "0.963", False),
-            ("dense search alone", 0.215, "0.215", False), ("random-vector control", 0.0, "0.000", False)], maxv=1,
-            note="the gold is built from SQL filters, so this measures filter fidelity, not answer quality", label="MARS-Healthcare retrieval scores", w=w)
+        return CH.hbars("MARS-Inspired Healthcare \u00b7 latency on Cloud Run, 30 streamed questions (ms)", [
+            ("retrieval, p50", 984, "984", True), ("retrieval, p95", 1498, "1,498", False),
+            ("first token, p50", 2033, "2,033", True), ("first token, p95", 5993, "5,993", False),
+            ("total, p50", 5427, "5,427", True), ("total, p95", 10776, "10,776", False)], maxv=12000,
+            note="30 of 30 answered, no errors; n = 30, so p99 (11,202 ms) is the maximum", label="MARS-Inspired Healthcare latency percentiles", w=w)
     if n == "10":
         return CH.hbars("24 logged live runs · outcome", [
             ("lifted the object", 9, "9", True), ("stopped by the operator", 9, "9", False),
@@ -360,15 +361,17 @@ ENTRIES.append(dict(
     source="Robot48hrs hackathon project", url="https://github.com/rgupta1111/Robot48hrs/tree/adi_1",
     video="https://drive.google.com/file/d/1Q7dwn_tRNeO0iJD7J3-1OeN8daDyMX5G/view?usp=sharing"))
 ENTRIES.append(dict(
-    n="11", label="MARS-Healthcare", year="2026", kicker="Healthcare AI evaluation", title="MARS-Healthcare",
-    metric="0.850", metric_note="MRR@8 for the shipped hybrid retrieval, against 0.215 for dense search alone, on 40 faceted questions",
-    line="A healthcare-AI evaluation assistant: nine event-driven services, hybrid retrieval over 15,954 records, streamed answers with cited sources, and a retrieval harness with a random-vector control.",
-    tags=["Python", "Qdrant", "Neo4j", "Gemma", "Redis Streams"], tracks="ai health",
+    n="11", label="MARS-Inspired Healthcare", year="2026", kicker="Healthcare AI evaluation", title="MARS-Inspired Healthcare",
+    metric="30 of 30", metric_note="streamed questions answered on Cloud Run with no errors; p50 5,427 ms and p95 10,776 ms per answer, 984 ms median retrieval",
+    line="A healthcare-AI evaluation assistant, deployed: nine event-driven services on GCP Cloud Run (Terraform, CI, OpenTelemetry), hybrid retrieval over 15,954 records, streamed answers with cited sources, and a retrieval harness with a random-vector control.",
+    tags=["Python", "GCP Cloud Run", "Terraform", "OpenTelemetry", "Qdrant", "Gemma"], tracks="ai health",
     bullets=["Built a healthcare-AI evaluation assistant over a 15,954-row clinical corpus as nine event-driven Python services: a rule router sends each question to SQL and full-text search, Qdrant vector search or a graph leg, an open-weights Gemma model streams the answer, and a citation guard ties each item to its source paper.",
+             "Deployed the stack on GCP Cloud Run with Terraform, Docker and GitHub Actions CI (154 tests), instrumented with OpenTelemetry (Cloud Trace and Cloud Monitoring), behind a default-deny API with per-IP rate limits, a daily question cap and a non-root container.",
+             "Measured 30 streamed questions at two at a time on a warm instance: 30 of 30 answered, retrieval p50 984 ms and p95 1,498 ms, time to first token p50 2,033 ms and p95 5,993 ms, total p50 5,427 ms, p95 10,776 ms and p99 11,202 ms (n = 30, so p99 is the maximum), at about $0.0004 per question.",
              "Measured retrieval with a reproducible harness on 40 faceted questions with SQL-derived gold: hybrid retrieval scored MRR@8 0.850 against 0.215 for dense search alone (0.963 at depth 20), and a seeded random-vector control scored 0.000.",
              "Limits, as measured: the graph leg added nothing on this suite, BM25 scored 1.000 only because the gold is built from the same filters, no semantic or human-judged result exists, and the corpus fields are LLM extraction records, not ground truth.",
-             "An Azure migration is designed, not deployed: Container Apps, Azure OpenAI in Azure AI Foundry, Managed Redis and Key Vault, with a phased move to Azure AI Search."],
-    source="Personal project", url="https://github.com/adi274903/MARS-Healthcare"))
+             "In the cloud the nine services share one container on an in-memory bus, and a cold start after idle takes about two minutes. An Azure migration was designed first (Container Apps, Azure OpenAI in Azure AI Foundry, Managed Redis, Key Vault); it was not deployed."],
+    source="Personal project, built at a hackathon and then deployed", url="https://github.com/adi274903/MARS-Inspired-Healthcare", demo="https://adi274903.github.io/MARS-Inspired-Healthcare/"))
 ENTRIES.append(dict(
     n="12", label="NCM-MoE", year="2026", kicker="Training study", title="NCM-MoE Omni training study",
     metric="170 TFLOPS", metric_note="sustained on one RTX PRO 6000 over a 2B-code run; MFU about 34% against an assumed peak",
@@ -515,7 +518,7 @@ HIGHLIGHTS = [   # (entry number, one line on why it matters, external link labe
     ("04", "Research-scale evaluation with an LLM judge and a human verifier, behind a paper on arXiv.",
      "Paper on arXiv", C.ARXIV),
     ("11", "A nine-service system with an evaluation harness that includes a random-vector control.",
-     "Project on GitHub", "https://github.com/adi274903/MARS-Healthcare"),
+     "Live demo and code", "https://adi274903.github.io/MARS-Inspired-Healthcare/"),
 ]
 
 
@@ -684,6 +687,7 @@ def case(i):
     tags = "".join(f"<li>{''.join(ic(s, n) for s, n in icons_in(t)[:1])}{e(t)}</li>" for t in en["tags"])
     bl = "".join(f"<li>{fmt(b)}</li>" for b in en["bullets"])
     link = (f'<a class="btn p" href="{_linkify(en["url"])}" rel="noopener">View project</a>' if en["url"] else "")
+    link += (f'<a class="btn" href="{en["demo"]}" rel="noopener">Try the live demo</a>' if en.get("demo") else "")
     link += (f'<a class="btn" href="{en["video"]}" rel="noopener">Watch the demo video</a>' if en.get("video") else "")
     pn = ((f'<a class="btn" href="{prev_["slug"]}">Previous: {e(prev_["title"])}</a>') if prev_ else
           '<a class="btn" href="index.html#work">All work</a>')
