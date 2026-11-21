@@ -180,7 +180,7 @@ KIND_OF = {"get_value_global": "role", "get_cmu_evaluation": "research", "get_cm
            "get_stealth_startup": "role", "get_tata_capital": "role", "get_jocata": "role", "get_med_qwen": "project", "get_emma": "project",
            "get_learning_portal": "project", "get_researchdroid": "project", "get_robot_arm": "project", "get_mars": "project", "get_ncm": "project", "get_publications": "papers", "get_recognition": "honors", "get_education": "education",
            "get_skills": "skills", "get_summary": "overview"}
-ORG_OF = {"get_value_global": "Value Global LLC", "get_cmu_evaluation": "Carnegie Mellon University, NIST-AIMSEC", "get_cmu_paper": "Carnegie Mellon University",
+ORG_OF = {"get_value_global": "Value Global", "get_cmu_evaluation": "Carnegie Mellon University, NIST-AIMSEC", "get_cmu_paper": "Carnegie Mellon University",
           "get_pricing_agent": "Carnegie Mellon University, NIST-AIMSEC", "get_stealth_startup": "Stealth Startup", "get_tata_capital": "Tata Capital",
           "get_jocata": "Jocata Financial Advisory", "get_researchdroid": "Distributed Systems course project", "get_robot_arm": "Robot48hrs hackathon", "get_mars": "MARS-Inspired Healthcare project", "get_ncm": "NCM-MoE training study", "get_emma": "Allegheny Health Network", "get_education": "Carnegie Mellon University, REVA University"}
 YEAR_OF = {"get_value_global": "2026", "get_cmu_evaluation": "2025", "get_cmu_paper": "2025", "get_pricing_agent": "2025", "get_stealth_startup": "2025",
@@ -322,7 +322,7 @@ src = {"01": (C.PROJECTS[0]["meta"], C.PROJECTS[0]["url"]), "02": (C.PROJECTS[1]
        "03": (C.PROJECTS[2]["meta"], C.PROJECTS[2]["url"]),
        "04": ("Carnegie Mellon University, NIST-AIMSEC", ""),
        "05": ("Carnegie Mellon University, NIST-AIMSEC", ""),
-       "06": ("Value Global LLC", "")}
+       "06": ("Value Global", "")}
 for en in ENTRIES:
     n = en["n"]
     en.update(tracks=tr[n], bullets=bul[n], source=src[n][0], url=src[n][1])
